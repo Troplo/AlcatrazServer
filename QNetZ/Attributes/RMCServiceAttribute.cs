@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace QNetZ.Attributes
 {
@@ -9,6 +9,8 @@ namespace QNetZ.Attributes
 	public class RMCServiceAttribute : Attribute
 	{
 		public readonly RMCProtocolId ProtocolId;
+		public string Name { get; set; }
+
 		public RMCServiceAttribute(RMCProtocolId protocolId)
 		{
 			ProtocolId = protocolId;

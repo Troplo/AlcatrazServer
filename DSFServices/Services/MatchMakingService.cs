@@ -13,7 +13,7 @@ namespace DSFServices.Services
 	/// Hermes match making service
 	///		Implements pre-game match making lobbies/gatherings (also known as Party buses)
 	/// </summary>
-	[RMCService(RMCProtocolId.MatchMakingService)]
+	[RMCService(RMCProtocolId.MatchMakingService, Name = "ServerMatchMakingProtocol")]
 	class MatchMakingService : RMCServiceBase
 	{
 		static uint GatheringIdCounter = 39000;

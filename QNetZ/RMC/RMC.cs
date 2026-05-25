@@ -1,4 +1,4 @@
-﻿using QNetZ.DDL;
+using QNetZ.DDL;
 using QNetZ.Factory;
 using QNetZ.Interfaces;
 using System;
@@ -47,83 +47,158 @@ namespace QNetZ
 
 			handler.SendACK(p, client);
 
+			var serviceFactory = RMCServiceFactory.GetServiceFactory(qrv.ProtocolName);
+			if (serviceFactory != null)
+			{
+				var serviceInstance = serviceFactory();
+				
+				var methodName = qrv.MethodName;
+				var splitIdx = methodName.IndexOf("::");
+				if (splitIdx >= 0)
+					methodName = methodName.Substring(splitIdx + 2);
+
+				var bestMethod = RMCServiceFactory.GetServiceMethodByName(serviceInstance.GetType(), methodName);
+				if (bestMethod != null)
+				{
+					var dummyRmc = new RMCPacket();
+					dummyRmc.callID = qrv.CallID;
+					serviceInstance.Context = new RMCContext(dummyRmc, handler, client, p);
+
+					object[] parameters = null;
+					bool deserializeFailed = false;
+					try
+					{
+						QLog.WriteLine(1, $"[QRV] Attempting to deserialize parameters for {qrv.MethodName}...");
+						var typeList = bestMethod.GetParameters().Select(x => x.ParameterType);
+						parameters = DDLSerializer.ReadPropertyValues(typeList.ToArray(), new MemoryStream(qrv.ParameterData));
+						QLog.WriteLine(1, $"[QRV] Successfully deserialized parameters for {qrv.MethodName}.");
+					}
+					catch (Exception ex)
+					{
+						QLog.WriteLine(1, $"[QRV] Failed to deserialize parameters for {qrv.MethodName} (falling back to hardcoded logic): {ex.Message}");
+						deserializeFailed = true;
+					}
+
+					if (!deserializeFailed)
+					{
+						try
+						{
+							QLog.WriteLine(1, $"[QRV] Attempting to invoke {qrv.MethodName} on {serviceInstance.GetType().Name}...");
+							var returnValue = bestMethod.Invoke(serviceInstance, parameters);
+							QLog.WriteLine(1, $"[QRV] Successfully invoked {qrv.MethodName}.");
+
+							if (returnValue != null && returnValue is RMCResult rmcResult)
+							{
+								var responseBytes = rmcResult.Response.ToBuffer();
+								SendQRVResponse(handler, p, client, qrv.MakeSuccessResponse(responseBytes));
+							}
+							else
+							{
+								SendQRVResponse(handler, p, client, qrv.MakeSuccessResponse());
+							}
+						}
+						catch (TargetInvocationException tie)
+						{
+							QLog.WriteLine(1, $"[QRV] TargetInvocationException in {qrv.MethodName}: {tie.InnerException?.Message}");
+							SendQRVResponse(handler, p, client, qrv.MakeErrorResponse((uint)Connection.ErrorCode.Core_SystemError));
+						}
+						catch (Exception ex)
+						{
+							QLog.WriteLine(1, $"[QRV] Unexpected Exception in {qrv.MethodName} Invoke: {ex.GetType().Name} - {ex.Message}");
+							SendQRVResponse(handler, p, client, qrv.MakeErrorResponse((uint)Connection.ErrorCode.Core_SystemError));
+						}
+						return;
+					}
+				}
+				else
+				{
+					QLog.WriteLine(1, $"[QRV] Dynamic Route Error: Method '{methodName}' not found in service '{qrv.ProtocolName}'");
+				}
+			}
+			else
+			{
+				QLog.WriteLine(1, $"[QRV] Dynamic Route Error: Service factory not found for '{qrv.ProtocolName}'");
+			}
+
 			byte[] responseData = null;
 			bool handled = true;
-
+			
 			switch (qrv.MethodName)
 			{
-				case "SimpleAuthenticationProtocol::LoginWithToken_V2":
-					responseData = HandleLoginWithToken_V2(client);
-					break;
-				case "SimpleAuthenticationProtocol::Register_V1":
-					responseData = HandleRegister_V1(client, qrv);
-					break;
-
-				// -- Post-auth init --
-				case "GameConfigProtocol::GetConfig_V2":
-					responseData = new byte[] { 0x00, 0x00, 0x00, 0x00 }; // empty config map
-					break;
-
-				case "Tracking2Protocol::GetStartupStats_V1":
-					break; // empty success
-
-				case "PrivilegesProtocol::GetPrivileges_V1":
-					responseData = HandleGetPrivileges_V1();
-					break;
-
-				case "LocalizationProtocol::SetLocaleCode_V1":
-					break; // empty success
-
-				case "PrivilegesProtocol::ActivateKey_V1":
-					break; // accept any DLC key
-
-				// -- Social / UI data --
+			// 	case "SimpleAuthenticationProtocol::LoginWithToken_V2":
+			// 		responseData = HandleLoginWithToken_V2(client);
+			// 		break;
+			// 	case "SimpleAuthenticationProtocol::Register_V1":
+			// 		responseData = HandleRegister_V1(client, qrv);
+			// 		break;
+			//
+			// 	// -- Post-auth init --
+			// 	case "GameConfigProtocol::GetConfig_V2":
+			// 		responseData = new byte[] { 0x00, 0x00, 0x00, 0x00 }; // empty config map
+			// 		break;
+			//
+			// 	case "Tracking2Protocol::GetStartupStats_V1":
+			// 		break; // empty success
+			//
+			// 	case "PrivilegesProtocol::GetPrivileges_V1":
+			// 		responseData = HandleGetPrivileges_V1();
+			// 		break;
+			//
+			// 	case "LocalizationProtocol::SetLocaleCode_V1":
+			// 		break; // empty success
+			//
+			// 	case "PrivilegesProtocol::ActivateKey_V1":
+			// 		break; // accept any DLC key
+			//
+			// 	// -- Social / UI data --
 				case "NewsProtocol::GetNewsByChannelType_V1":
 					responseData = new byte[] { 0x00, 0x00, 0x00, 0x00 }; // empty list
 					break;
-
+			
 				case "FriendSyncProtocol::SyncFriends_V1":
 					break; // empty success
-
+			
 				case "TransactionProtocol::GetUnverifiedTransactions_V3":
 					responseData = new byte[] { 0x00, 0x00, 0x00, 0x00 }; // empty list
 					break;
-
+			
 				case "LeaderboardsProtocol::GetLeaderboardOverviewWithEstimatedUserPositionAndDefaultSorting_V2":
 					break; // empty success
-
-				// -- Session / Matchmaking --
-				case "GameSessionProtocol::RegisterURLs_V1":
-					HandleRegisterURLs_V1(client, qrv);
-					break;
-
-				case "ServerMatchMakingProtocol::SetPlayerBlocklist_V1":
-					break; // empty success
-
-				case "ServerMatchMakingProtocol::SetPlayerAvailableForMatchMaking_V5":
-					break; // empty success (no match on private server)
-
-				case "ServerMatchMakingProtocol::CancelMatchmakingRequest_V1":
-					break; // empty success
-
-				case "ServerMatchMakingProtocol::SetPlayerUnavailableForMatchMaking_V1":
-					break; // empty success
-
-				case "GameSessionProtocol::CreateSession_V1":
-					responseData = HandleCreateSession_V1(client, qrv);
-					break;
-
-				case "GameSessionProtocol::AddParticipants_V1":
-					break; // empty success
-
-				case "GameSessionProtocol::AbandonSession_V1":
-					break; // empty success
-
+			
+			// 	// -- Session / Matchmaking --
+			// 	case "GameSessionProtocol::RegisterURLs_V1":
+			// 		HandleRegisterURLs_V1(client, qrv);
+			// 		break;
+			//
+			// 	case "ServerMatchMakingProtocol::SetPlayerBlocklist_V1":
+			// 		break; // empty success
+			//
+			// 	case "ServerMatchMakingProtocol::SetPlayerAvailableForMatchMaking_V5":
+			// 		break; // empty success (no match on private server)
+			//
+			// 	case "ServerMatchMakingProtocol::CancelMatchmakingRequest_V1":
+			// 		break; // empty success
+			//
+			// 	case "ServerMatchMakingProtocol::SetPlayerUnavailableForMatchMaking_V1":
+			// 		break; // empty success
+			// 	
+			// 	case "PortalsMissionsProtocol::SetPlayerOpenForSuggestions_V6":
+			// 		break;
+			// 	case "GameSessionProtocol::CreateSession_V1":
+			// 		responseData = HandleCreateSession_V1(client, qrv);
+			// 		break;
+			//
+			// 	case "GameSessionProtocol::AddParticipants_V1":
+			// 		break; // empty success
+			//
+			// 	case "GameSessionProtocol::AbandonSession_V1":
+			// 		break; // empty success
+			//
 				case "LeaderboardsProtocol::GetLeaderboardOverviewWithDefaultSorting_V2":
 					break; // empty success
-
+			
 				default:
-					QLog.WriteLine(1, $"[QRV] Unhandled method: {qrv.MethodName}");
+					// QLog.WriteLine(1, $"[QRV] Unhandled method: {qrv.MethodName}");
 					handled = false;
 					break;
 			}

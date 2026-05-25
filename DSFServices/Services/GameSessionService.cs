@@ -1,4 +1,4 @@
-﻿using DSFServices.DDL.Models;
+using DSFServices.DDL.Models;
 using QNetZ;
 using QNetZ.Attributes;
 using QNetZ.DDL;
@@ -14,7 +14,7 @@ namespace DSFServices.Services
 	/// Game session 
 	///		Implements the sessions responsible for the gameplay process
 	/// </summary>
-	[RMCService(RMCProtocolId.GameSessionService)]
+	[RMCService(RMCProtocolId.GameSessionService, Name = "GameSessionProtocol")]
 	public class GameSessionService : RMCServiceBase
 	{
 		static uint GameSessionCounter = 22110;
@@ -22,6 +22,7 @@ namespace DSFServices.Services
 		[RMCMethod(1)]
 		public RMCResult CreateSession(GameSession gameSession)
 		{
+			QLog.WriteLine(1, "GameSessionService.CreateSession called with typeID=" + gameSession.m_typeID);
 			var plInfo = Context.Client.PlayerInfo;
 			var newSession = new GameSessionData();
 			GameSessions.SessionList.Add(newSession);
@@ -67,8 +68,31 @@ namespace DSFServices.Services
 			return Result(result);
 		}
 
+		[RMCMethod(0, Name = "CreateSession_V1")]
+		public RMCResult CreateSession_QRV(uint dummy)
+		{
+			// QRV payloads for CreateSession_V1 seem to not send a full GameSession, so we handle it separately
+			uint sessionId = ++GameSessionCounter;
+			var plInfo = Context.Client.PlayerInfo;
+			QLog.WriteLine(1, $"[QRV] CreateSession_V1: session={sessionId:X8} player={plInfo?.Name}");
+			
+			var newSession = new GameSessionData();
+			GameSessions.SessionList.Add(newSession);
 
-		[RMCMethod(2)]
+			newSession.Id = sessionId;
+			if (plInfo != null)
+				newSession.HostPID = plInfo.PID;
+			newSession.TypeID = 0;
+
+			// Return the key with session ID first to match the original hardcoded response!
+			return Result(new {
+				sessionId = newSession.Id,
+				typeId = newSession.TypeID
+			});
+		}
+
+
+		[RMCMethod(2, "UpdateSession_V1")]
 		public RMCResult UpdateSession(GameSessionUpdate gameSessionUpdate)
 		{
 			var session = GameSessions.SessionList
@@ -163,7 +187,7 @@ namespace DSFServices.Services
 		}
 
 
-		[RMCMethod(5)]
+		[RMCMethod(5, "LeaveSession_V1")]
 		public RMCResult LeaveSession(GameSessionKey gameSessionKey)
 		{
 			// Same as AbandonSession
@@ -218,7 +242,7 @@ namespace DSFServices.Services
 		}
 
 
-		[RMCMethod(6)]
+		[RMCMethod(6, "GetSession_V1")]
 		public RMCResult GetSession(GameSessionKey gameSessionKey)
 		{
 			var searchResult = new GameSessionSearchResult();
@@ -244,7 +268,7 @@ namespace DSFServices.Services
 		}
 
 
-		[RMCMethod(7)]
+		[RMCMethod(7, "SearchSessions_V1")]
 		public RMCResult SearchSessions(uint m_typeID, uint m_queryID, IEnumerable<GameSessionProperty> m_parameters)
 		{
 			var sessions = GameSessions.SessionList.Where(x => x.TypeID == m_typeID).ToArray();
@@ -330,8 +354,13 @@ namespace DSFServices.Services
 			return Error(0);
 		}
 
+		[RMCMethod(0, "AddParticipants_V1")]
+		public RMCResult AddParticipantsQZ()
+		{
+			return Error(0);
+		}
 
-		[RMCMethod(9)]
+		[RMCMethod(9, "RemoveParticipants_V1")]
 		public RMCResult RemoveParticipants(GameSessionKey gameSessionKey, IEnumerable<uint> participantIDs)
 		{
 			var session = GameSessions.SessionList.FirstOrDefault(x => x.IsMatchingKey(gameSessionKey));
@@ -390,7 +419,7 @@ namespace DSFServices.Services
 		}
 
 
-		[RMCMethod(10)]
+		[RMCMethod(10, "GetParticipantCount_V1")]
 		public RMCResult GetParticipantCount(GameSessionKey gameSessionKey, IEnumerable<uint> participantIDs)
 		{
 			UNIMPLEMENTED();
@@ -398,7 +427,7 @@ namespace DSFServices.Services
 		}
 
 
-		[RMCMethod(11)]
+		[RMCMethod(11, "GetParticipants_V1")]
 		public void GetParticipants()
 		{
 			UNIMPLEMENTED();
@@ -468,13 +497,13 @@ namespace DSFServices.Services
 		}
 
 
-		[RMCMethod(21)]
+		[RMCMethod(21, Name = "RegisterURLs_V1")]
 		public RMCResult RegisterURLs(IEnumerable<StationURL> stationURLs)
 		{
 			var plInfo = Context.Client.PlayerInfo;
 			var myPlayerId = plInfo.PID;
 			var session = GameSessions.SessionList.FirstOrDefault(x => x.HostPID == myPlayerId);
-
+			QLog.WriteLine(1, $"Session hosted by pid={myPlayerId}. Session={session?.Id}, URLs: {string.Join(", ", stationURLs.Select(x => x.ToString()))}");
 			if (session != null)
 			{
 				session.HostURLs.Clear();
@@ -482,21 +511,20 @@ namespace DSFServices.Services
 			}
 			else
 			{
-				QLog.WriteLine(1, $"Error : GameSessionService.RegisterURLs - no session hosted by pid={myPlayerId}");
 			}
 
-			return Error(0);
+			return Result(new { retVal = true });
 		}
 
 
-		[RMCMethod(22)]
+		[RMCMethod(22, "JoinSession_V1")]
 		public void JoinSession()
 		{
 			UNIMPLEMENTED();
 		}
 
 
-		[RMCMethod(23)]
+		[RMCMethod(23, Name = "AbandonSession_V1")]
 		public RMCResult AbandonSession(GameSessionKey gameSessionKey)
 		{
 			return LeaveSession(gameSessionKey);
@@ -510,7 +538,7 @@ namespace DSFServices.Services
 		}
 
 
-		[RMCMethod(25)]
+		[RMCMethod(25, "GetSessions_V1")]
 		public void GetSessions()
 		{
 			UNIMPLEMENTED();

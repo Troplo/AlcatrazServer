@@ -22,3 +22,5 @@ _publish/*
 *.sqlite-shm
 *.sqlite-wal
 .claude/settings.local.json
+AlcatrazGameServices/_RDV_log.txt
+AlcatrazGameServices/packetLog.bin

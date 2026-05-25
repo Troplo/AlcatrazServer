@@ -11,11 +11,10 @@ namespace DSFServices.Services
 	/// <summary>
 	/// Secure connection service protocol
 	/// </summary>
-	[RMCService(RMCProtocolId.PrivilegesService)]
+	[RMCService(RMCProtocolId.PrivilegesService, Name = "PrivilegesProtocol")]
 	public class PrivilegesService : RMCServiceBase
 	{
-
-		[RMCMethod(1)]
+		[RMCMethod(1, "GetPrivileges_V1")]
 		public RMCResult GetPrivileges(string localeCode)
 		{
 			var privileges = new Dictionary<uint, Privilege>();
@@ -53,10 +52,10 @@ namespace DSFServices.Services
 			return Result(privileges);
 		}
 
-		[RMCMethod(2)]
-		public void ActivateKey()
+		[RMCMethod(2, Name = "ActivateKey_V1")]
+		public RMCResult ActivateKey()
 		{
-			UNIMPLEMENTED();
+			return Error(0);
 		}
 
 		[RMCMethod(3)]

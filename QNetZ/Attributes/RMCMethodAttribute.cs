@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace QNetZ.Attributes
 {
@@ -10,7 +10,7 @@ namespace QNetZ.Attributes
 	public class RMCMethodAttribute : Attribute
 	{
 		public readonly uint MethodId;
-		public readonly string Name;
+		public string Name { get; set; }
 
 		public RMCMethodAttribute(uint methodId, string name = null)
 		{

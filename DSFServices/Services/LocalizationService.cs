@@ -4,16 +4,16 @@ using QNetZ.Interfaces;
 
 namespace DSFServices.Services
 {
-	[RMCService(RMCProtocolId.LocalizationService)]
+	[RMCService(RMCProtocolId.LocalizationService, Name = "LocalizationProtocol")]
 	public class LocalizationService : RMCServiceBase
 	{
-		[RMCMethod(1)]
+		[RMCMethod(1, "GetLocaleCode_V1")]
 		public RMCResult GetLocaleCode()
 		{
 			return Result("en-US");
 		}
 
-		[RMCMethod(2)]
+		[RMCMethod(2, "SetLocaleCode_V1")]
 		public RMCResult SetLocaleCode(string localeCode)
 		{
 			return Error(0);

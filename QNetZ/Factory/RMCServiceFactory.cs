@@ -13,6 +13,7 @@ namespace QNetZ.Factory
 	public static class RMCServiceFactory
 	{
 		static Dictionary<RMCProtocolId, Func<RMCServiceBase>> s_FactoryFuncs = new Dictionary<RMCProtocolId, Func<RMCServiceBase>>();
+		static Dictionary<string, Func<RMCServiceBase>> s_FactoryFuncsByName = new Dictionary<string, Func<RMCServiceBase>>();
 
 		public static void RegisterService<T>() where T: RMCServiceBase
 		{
@@ -25,15 +26,34 @@ namespace QNetZ.Factory
 
 			if (serviceAttribute == null)
 				return; //throw new Exception($"Service type '{ serviceType.Name }' missing 'RMCService' attribute!");
-
-			if(s_FactoryFuncs.ContainsKey(serviceAttribute.ProtocolId))
-				throw new Exception($"Service '{ serviceType.Name }' is already registered at protocol number { serviceAttribute.ProtocolId }!");
-
 			var createFunc = Expression.Lambda<Func<RMCServiceBase>>(
 				Expression.New(serviceType.GetConstructor(Type.EmptyTypes))
 			).Compile();
+			if (!serviceAttribute.ProtocolId.Equals(RMCProtocolId.NexusOnly))
+			{
+				if (s_FactoryFuncs.ContainsKey(serviceAttribute.ProtocolId))
+					throw new Exception(
+						$"Service '{serviceType.Name}' is already registered at protocol number {serviceAttribute.ProtocolId}!");
 
-			s_FactoryFuncs.Add(serviceAttribute.ProtocolId, createFunc);
+				s_FactoryFuncs.Add(serviceAttribute.ProtocolId, createFunc);
+			}
+
+			if (!string.IsNullOrEmpty(serviceAttribute.Name))
+			{
+				s_FactoryFuncsByName[serviceAttribute.Name] = createFunc;
+			}
+		}
+
+		public static Func<RMCServiceBase> GetServiceFactory(string protocolName)
+		{
+			if (s_FactoryFuncsByName.TryGetValue(protocolName, out var existingFactory))
+			{
+				return existingFactory;
+			}
+
+			// We shouldn't rely on reflection scanning here for named protocols because 
+			// DSFServices registers them explicitly via ServiceFactoryDSF on boot.
+			return null;
 		}
 
 		public static Func<RMCServiceBase> GetServiceFactory(RMCProtocolId protocolId)
@@ -93,6 +113,28 @@ namespace QNetZ.Factory
 				if (rmcMethodAttr != null)
 				{
 					if (rmcMethodAttr.MethodId == methodId)
+					{
+						bestMethod = method;
+						break;
+					}
+				}
+			}
+
+			return bestMethod;
+		}
+
+		public static MethodInfo GetServiceMethodByName(Type rmcServiceType, string methodName)
+		{
+			MethodInfo bestMethod = null;
+
+			// find suitable method which DO have attribute with matching Name
+			var allMethods = rmcServiceType.GetMethods();
+			foreach (var method in allMethods)
+			{
+				var rmcMethodAttr = (RMCMethodAttribute)method.GetCustomAttributes(typeof(RMCMethodAttribute), true).SingleOrDefault();
+				if (rmcMethodAttr != null)
+				{
+					if (rmcMethodAttr.Name == methodName)
 					{
 						bestMethod = method;
 						break;

@@ -24,8 +24,8 @@ namespace Alcatraz.GameServices.Services
 			ServiceFactoryDSF.RegisterDSFServices();
 
 			// configure logging
-			QLog.EnablePacketLogging = false;
-			QLog.EnableFileLogging = false;
+			QLog.EnablePacketLogging = true;
+			QLog.EnableFileLogging = true;
 			QLog.LogFunction = (int priority, string s, Color color) =>
 			{
 				if (priority <= QConfiguration.Instance.LogLevel)
