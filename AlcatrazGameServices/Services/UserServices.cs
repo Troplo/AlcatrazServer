@@ -1,4 +1,4 @@
-﻿using Alcatraz.Context;
+using Alcatraz.Context;
 using Alcatraz.Context.Entities;
 using Alcatraz.DTO.Helpers;
 using Alcatraz.DTO.Models;
@@ -60,6 +60,7 @@ namespace Alcatraz.GameServices.Services
 				Id = user.Id,
 				PlayerNickName = user.PlayerNickName,
 				Username = user.Username,
+				RewardFlags = user.RewardFlags
 			};
 
 			// authentication successful so generate jwt token
@@ -76,7 +77,8 @@ namespace Alcatraz.GameServices.Services
 				{
 					Id = x.Id,
 					PlayerNickName = x.PlayerNickName,
-					Username = x.Username
+					Username = x.Username,
+					RewardFlags = x.RewardFlags
 				}).ToArray();
 		}
 
@@ -88,7 +90,8 @@ namespace Alcatraz.GameServices.Services
 				{
 					Id = x.Id,
 					PlayerNickName = x.PlayerNickName,
-					Username = x.Username
+					Username = x.Username,
+					RewardFlags = x.RewardFlags
 				})
 				.FirstOrDefault(x => x.Id == id);
 		}

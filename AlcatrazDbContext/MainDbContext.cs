@@ -1,4 +1,4 @@
-﻿using Alcatraz.Context.Entities;
+using Alcatraz.Context.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -78,6 +78,9 @@ namespace Alcatraz.Context
 
 		public DbSet<PlayerStatisticsBoard> PlayerStatisticBoards { get; set; }
 		public DbSet<PlayerStatisticsBoardValue> PlayerStatisticBoardValues { get; set; }
+
+		public DbSet<SessionToken> SessionTokens { get; set; }
+		public DbSet<LoginPin> LoginPins { get; set; }
 	}
 
 	public class ContextAwareMigrationsAssembly : MigrationsAssembly

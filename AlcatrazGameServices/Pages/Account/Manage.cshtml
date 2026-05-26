@@ -1,4 +1,4 @@
-﻿@page
+@page
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @model Alcatraz.GameServices.Pages.Account.ManageModel
 @{
@@ -28,9 +28,19 @@
         </form>
     </div>
     <div class="col-md-4">
-        <h3>Configuration test</h3>
-        <div class="form-group mb-3">
-            <a class="btn btn-secondary" href="@Url.Action("GetAlcatrazConfig", "Users")">Download Configuration</a>
-        </div>
+        <h3>In-Game Login PIN</h3>
+        <p>Use a PIN to login to your account inside the game.</p>
+        <form method="post" asp-page-handler="GeneratePin">
+            <div class="form-group mb-3">
+                <button type="submit" class="btn btn-secondary">Generate Login PIN</button>
+            </div>
+        </form>
+        @if (!string.IsNullOrEmpty(Model.GeneratedPin))
+        {
+            <div class="alert alert-success mt-3">
+                <strong>Your PIN:</strong> <span style="font-family: monospace; font-size: 1.2em;">@Model.GeneratedPin</span>
+                <p class="mb-0 mt-2 text-muted">This PIN expires in 30 minutes.</p>
+            </div>
+        }
     </div>
 </div>

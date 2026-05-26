@@ -69,6 +69,7 @@ namespace QNetZ
 					try
 					{
 						QLog.WriteLine(1, $"[QRV] Attempting to deserialize parameters for {qrv.MethodName}...");
+						QLog.WriteLine(1, $"[QRV] Packet data for {qrv.MethodName}: {BitConverter.ToString(qrv.ParameterData)}");
 						var typeList = bestMethod.GetParameters().Select(x => x.ParameterType);
 						parameters = DDLSerializer.ReadPropertyValues(typeList.ToArray(), new MemoryStream(qrv.ParameterData));
 						QLog.WriteLine(1, $"[QRV] Successfully deserialized parameters for {qrv.MethodName}.");

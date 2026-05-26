@@ -1,4 +1,5 @@
-﻿using Alcatraz.GameServices.Services;
+using Alcatraz.Context;
+using Alcatraz.GameServices.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -23,17 +24,22 @@ namespace Alcatraz.GameServices.Helpers
 			_appSettings = appSettings.Value;
 		}
 
-		public async Task Invoke(HttpContext context, IUserService userService)
+		public async Task Invoke(HttpContext context, IUserService userService, Alcatraz.Context.MainDbContext dbContext)
 		{
 			var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
-			if (token != null)
-				attachUserToContext(context, userService, token);
+			if (string.IsNullOrEmpty(token))
+			{
+				token = context.Request.Headers["x-tntmp-token"].FirstOrDefault();
+			}
+
+			if (!string.IsNullOrEmpty(token))
+				attachUserToContext(context, userService, dbContext, token);
 
 			await _next(context);
 		}
 
-		private void attachUserToContext(HttpContext context, IUserService userService, string token)
+		private void attachUserToContext(HttpContext context, IUserService userService, MainDbContext dbContext, string token)
 		{
 			try
 			{
@@ -45,7 +51,6 @@ namespace Alcatraz.GameServices.Helpers
 					IssuerSigningKey = new SymmetricSecurityKey(key),
 					ValidateIssuer = false,
 					ValidateAudience = false,
-					// set clockskew to zero so tokens expire exactly at token expiration time (instead of 5 minutes later)
 					ClockSkew = TimeSpan.Zero
 				}, out SecurityToken validatedToken);
 
@@ -53,13 +58,15 @@ namespace Alcatraz.GameServices.Helpers
 				var nameId = jwtToken.Claims.FirstOrDefault(x => x.Type == "uid");
 				var userId = uint.Parse(nameId.Value);
 
-				// attach user to context on successful jwt validation
 				context.Items["User"] = userService.GetById(userId);
 			}
 			catch
 			{
-				// do nothing if jwt validation fails
-				// user is not attached to context so request won't have access to secure routes
+				var sessionToken = dbContext.SessionTokens.FirstOrDefault(t => t.Id == token);
+				if (sessionToken != null)
+				{
+					context.Items["User"] = userService.GetById(sessionToken.UserId);
+				}
 			}
 		}
 	}

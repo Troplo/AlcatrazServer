@@ -34,12 +34,11 @@ namespace Alcatraz.GameServices
 			services.Configure<QConfiguration>(Configuration.GetSection("Services"));
 
 			var secOpts = Configuration.GetSection("Services").Get<QConfiguration>();
-
+			services.AddScoped<UbiservicesTokenFilter>();
 			services.AddCors();
 			services.AddControllers();
 			services.AddSession();
 			services.AddHttpContextAccessor();
-
 			services.AddRazorPages(options =>
 			{
 				options.Conventions.AuthorizePage("/Account/Manage");

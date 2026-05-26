@@ -5,6 +5,10 @@ using System.Text;
 
 namespace QNetZ
 {
+	public class UbiservicesMicroservice
+	{
+		public string Token { get; set; }
+	}
 	public class QConfiguration
 	{
 		public string ServerBindAddress { get; set; }
@@ -17,7 +21,7 @@ namespace QNetZ
 		public string DbConnectionString { get; set; }
 		public int DbType { get; set; }
 		public int LogLevel { get; set; }						// not used in debug server. See Services/RendezVousServer.cs
-
+		public UbiservicesMicroservice Ubiservices { get; set; }
 		public byte SandboxAccessKeyCheckSum
 		{
 			get

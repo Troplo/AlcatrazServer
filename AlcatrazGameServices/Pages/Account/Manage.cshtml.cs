@@ -21,6 +21,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json.Linq;
+using Alcatraz.Context;
+using System.Security.Cryptography;
 
 namespace Alcatraz.GameServices.Pages.Account
 {
@@ -36,12 +38,15 @@ namespace Alcatraz.GameServices.Pages.Account
 
 		public string NewPassword { get; set; }
 		public string NewPasswordRetype { get; set; }
+		public string GeneratedPin { get; set; }
 
 		private IUserService _userService;
+		private MainDbContext _dbContext;
 
-		public ManageModel(IUserService userService)
+		public ManageModel(IUserService userService, MainDbContext dbContext)
         {
             _userService = userService;
+			_dbContext = dbContext;
 		}
 
 		public IActionResult OnGet(bool getConfig = false)
@@ -126,6 +131,63 @@ namespace Alcatraz.GameServices.Pages.Account
 			ErrorMessage = result.ErrorMessage;
 			CurrentUserName = HttpContext.User.Identity.Name;
 
+			return Page();
+		}
+
+		public async Task<IActionResult> OnPostGeneratePinAsync()
+		{
+			var claims = HttpContext.User.Claims;
+			var uidClaim = claims.FirstOrDefault(x => x.Type == "uid");
+
+			uint uid = 0;
+			if (uint.TryParse(uidClaim.Value, out uid))
+			{
+				CurrentUser = _userService.GetById(uid);
+			}
+
+			if (CurrentUser == null)
+			{
+				return RedirectToPage("/Account/SignIn");
+			}
+
+			CurrentUserName = HttpContext.User.Identity.Name;
+			
+			// Load EditModel so the form isn't empty on reload
+			EditModel = new UserModel()
+			{
+				Id = CurrentUser.Id,
+				PlayerNickName = CurrentUser.PlayerNickName,
+				Username = CurrentUser.Username
+			};
+
+			// Generate PIN
+			var bytes = new byte[4];
+			using (var rng = RandomNumberGenerator.Create())
+			{
+				rng.GetBytes(bytes);
+			}
+			var pinStr = BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
+
+			var token = new Alcatraz.Context.Entities.SessionToken
+			{
+				Id = Guid.NewGuid().ToString(),
+				UserId = CurrentUser.Id,
+				CreatedAt = DateTime.UtcNow
+			};
+
+			var loginPin = new Alcatraz.Context.Entities.LoginPin
+			{
+				Pin = pinStr,
+				TokenId = token.Id,
+				ExpiresAt = DateTime.UtcNow.AddMinutes(30)
+			};
+
+			_dbContext.SessionTokens.Add(token);
+			_dbContext.LoginPins.Add(loginPin);
+			await _dbContext.SaveChangesAsync();
+
+			GeneratedPin = pinStr;
+			
 			return Page();
 		}
 	}

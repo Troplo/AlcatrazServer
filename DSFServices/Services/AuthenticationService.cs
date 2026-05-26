@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 using DSFServices.DDL.Models;
 using QNetZ;
 using QNetZ.Attributes;
@@ -21,14 +22,32 @@ namespace DSFServices.Services
         {
             var client = Context.Client;
             var playerInfo = NetworkPlayers.CreatePlayerInfo(client);
-            playerInfo.PID = 2;
-            playerInfo.AccountId = "00000000-0000-0000-0000-000000000001";
-            playerInfo.Name = "Player1";
+
+            using (var db = RDVServices.DBHelper.GetDbContext())
+            {
+                var sessionToken = db.SessionTokens
+                    .Include(t => t.User)
+                    .FirstOrDefault(t => t.Id == strToken);
+
+                if (sessionToken != null && sessionToken.User != null)
+                {
+                    playerInfo.PID = sessionToken.User.Id;
+                    playerInfo.Name = sessionToken.User.PlayerNickName;
+                }
+                else
+                { 
+                    QLog.WriteLine(1, $"[QRV] LoginWithToken_V2: login failed {strToken}");
+            
+                    return Error((int)ErrorCode.Authentication_TokenExpired);
+                }
+            }
+
+            playerInfo.AccountId = $"00000000-0000-0000-0000-{playerInfo.PID:D12}";
 
             client.PlayerInfo = playerInfo;
             playerInfo.Client = client;
 
-            QLog.WriteLine(1, $"[QRV] LoginWithToken_V2: logged in as PID={playerInfo.PID} name={playerInfo.Name}. Token: {strToken}, OnlineKey: {strOnlineKey}, ClientVersion: {clientVersionInfo}, RVConnectionData: {rvConnectionData}");
+            QLog.WriteLine(1, $"[QRV] LoginWithToken_V2: logged in as PID={playerInfo.PID} name={playerInfo.Name}. Token: {strToken}, OnlineKey: {strOnlineKey}, ClientVersion: {clientVersionInfo}");
 
             var m = new MemoryStream();
 
