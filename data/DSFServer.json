@@ -1,13 +1,12 @@
 {
-	PacketLogging: false,
+	PacketLogging: true,
 	LogLevel: 2,
-
 	Services: {
 		ServerBindAddress: "37.77.104.232",
-		RDVServerPort: 21005,
+		RDVServerPort: 21001,
 		BackendServiceServerPort: 21006,
 		ServerFilesPath: "./serverFiles/",
-		SandboxAccessKey: "8dtRv2oj"
+		SandboxAccessKey: "p4BkcPBh"
 	}
 }
 

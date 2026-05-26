@@ -2,12 +2,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using DSFServices.DDL.Models;
 using QNetZ;
 using QNetZ.Attributes;
 using QNetZ.Connection;
 using QNetZ.DDL;
 using QNetZ.Interfaces;
 using RDVServices.DDL.Models;
+using RVConnectionData = DSFServices.DDL.Models.RVConnectionData;
 
 namespace DSFServices.Services
 {
@@ -15,7 +17,7 @@ namespace DSFServices.Services
     public class AuthenticationService : RMCServiceBase
     {
         [RMCMethod(0, Name = "LoginWithToken_V2")]
-        public RMCResult LoginWithToken(IEnumerable<int> achievementIds)
+        public RMCResult LoginWithToken(string strToken, string strOnlineKey, ClientVersionInfo clientVersionInfo, RVConnectionData rvConnectionData)
         {
             var client = Context.Client;
             var playerInfo = NetworkPlayers.CreatePlayerInfo(client);
@@ -26,7 +28,7 @@ namespace DSFServices.Services
             client.PlayerInfo = playerInfo;
             playerInfo.Client = client;
 
-            QLog.WriteLine(1, $"[QRV] LoginWithToken_V2: logged in as PID={playerInfo.PID} name={playerInfo.Name}");
+            QLog.WriteLine(1, $"[QRV] LoginWithToken_V2: logged in as PID={playerInfo.PID} name={playerInfo.Name}. Token: {strToken}, OnlineKey: {strOnlineKey}, ClientVersion: {clientVersionInfo}, RVConnectionData: {rvConnectionData}");
 
             var m = new MemoryStream();
 
@@ -47,7 +49,7 @@ namespace DSFServices.Services
 
 
         [RMCMethod(0, Name = "Register_V1")]
-        public RMCResult Register(uint reserved, List<string> vecMyURLs)
+        public RMCResult Register(List<string> vecMyURLs)
         {
             var rdvConnectionUrl = new StationURL(vecMyURLs.Last().ToString());
             rdvConnectionUrl.Address = Context.Client.Endpoint.Address.ToString();

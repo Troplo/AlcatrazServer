@@ -19,7 +19,7 @@ namespace DSFServices.Services
 	{
 		static uint GameSessionCounter = 22110;
 
-		[RMCMethod(1)]
+		[RMCMethod(1, "CreateSession_V1")]
 		public RMCResult CreateSession(GameSession gameSession)
 		{
 			QLog.WriteLine(1, "GameSessionService.CreateSession called with typeID=" + gameSession.m_typeID);
@@ -67,30 +67,6 @@ namespace DSFServices.Services
 
 			return Result(result);
 		}
-
-		[RMCMethod(0, Name = "CreateSession_V1")]
-		public RMCResult CreateSession_QRV(uint dummy)
-		{
-			// QRV payloads for CreateSession_V1 seem to not send a full GameSession, so we handle it separately
-			uint sessionId = ++GameSessionCounter;
-			var plInfo = Context.Client.PlayerInfo;
-			QLog.WriteLine(1, $"[QRV] CreateSession_V1: session={sessionId:X8} player={plInfo?.Name}");
-			
-			var newSession = new GameSessionData();
-			GameSessions.SessionList.Add(newSession);
-
-			newSession.Id = sessionId;
-			if (plInfo != null)
-				newSession.HostPID = plInfo.PID;
-			newSession.TypeID = 0;
-
-			// Return the key with session ID first to match the original hardcoded response!
-			return Result(new {
-				sessionId = newSession.Id,
-				typeId = newSession.TypeID
-			});
-		}
-
 
 		[RMCMethod(2, "UpdateSession_V1")]
 		public RMCResult UpdateSession(GameSessionUpdate gameSessionUpdate)
@@ -246,23 +222,26 @@ namespace DSFServices.Services
 		public RMCResult GetSession(GameSessionKey gameSessionKey)
 		{
 			var searchResult = new GameSessionSearchResult();
+				QLog.WriteLine(1, $"GetSession_V1: KeySid={gameSessionKey.m_sessionID}, KeyType={gameSessionKey.m_typeID} player={Context.Client.PlayerInfo?.Name}");
 
 			var session = GameSessions.SessionList.FirstOrDefault(x => x.Id == gameSessionKey.m_sessionID && x.TypeID == gameSessionKey.m_typeID);
 
-			if (session != null)
+			// if (session != null)
 			{
 				searchResult = new GameSessionSearchResult()
 				{
-					m_hostPID = session.HostPID,
-					m_hostURLs = session.HostURLs,
-					m_attributes = session.Attributes.Select(x => new GameSessionProperty { ID = x.Key, Value = x.Value}).ToArray(),
+					m_hostPID = 6969,
+					m_hostURLs = {},
+					m_attributes = {},
 					m_sessionKey = new GameSessionKey()
 					{
-						m_sessionID = session.Id,
-						m_typeID = session.TypeID
+						m_sessionID = 1632043023,
+						m_typeID = 3
 					}
 				};
+				// QLog.WriteLine(1, $"GetSession_V1: session={session.Id} player={Context.Client.PlayerInfo?.Name}");
 			}
+				QLog.WriteLine(1, $"GetSession_V1: session=None");
 
 			return Result(searchResult);
 		}

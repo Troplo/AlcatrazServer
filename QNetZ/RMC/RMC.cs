@@ -76,6 +76,8 @@ namespace QNetZ
 					catch (Exception ex)
 					{
 						QLog.WriteLine(1, $"[QRV] Failed to deserialize parameters for {qrv.MethodName} (falling back to hardcoded logic): {ex.Message}");
+						// Log the packet
+						QLog.WriteLine(1, $"[QRV] Packet data: {BitConverter.ToString(qrv.ParameterData)}");
 						deserializeFailed = true;
 					}
 
@@ -250,7 +252,6 @@ namespace QNetZ
 			// Parse the client's station URL from parameters
 			// Format: [U32 reserved][U32 url_count][U16 url_len][url\0]...
 			var m = new MemoryStream(qrv.ParameterData);
-			Helper.ReadU32(m); // reserved
 			uint urlCount = Helper.ReadU32(m);
 			string clientUrl = null;
 			for (uint i = 0; i < urlCount; i++)
@@ -288,9 +289,7 @@ namespace QNetZ
 		private static void HandleRegisterURLs_V1(QClient client, QRVPacket qrv)
 		{
 			// Parse and log the client P2P URLs
-			// Format: [U32 NamPro count=0] [U32 url_count] [U16 url_len][url\0]...
 			var m = new MemoryStream(qrv.ParameterData);
-			Helper.ReadU32(m); // NamPro count
 			uint urlCount = Helper.ReadU32(m);
 			for (uint i = 0; i < urlCount; i++)
 			{

@@ -33,6 +33,7 @@ namespace QNetZ
 		public bool IsRequest;
 		public uint CallID;
 		public string MethodName;
+		public byte[] ClassDictionary;
 		public byte[] ParameterData;
 
 		public QRVPacket(byte[] payload)
@@ -54,9 +55,43 @@ namespace QNetZ
 			MethodName = Encoding.ASCII.GetString(methodBytes).TrimEnd('\0');
 
 			int remaining = (int)(m.Length - m.Position);
-			ParameterData = new byte[remaining];
 			if (remaining > 0)
-				m.Read(ParameterData, 0, remaining);
+			{
+				if (IsRequest)
+				{
+					// Read Class Dictionary
+					long startPos = m.Position;
+					uint classCount = Helper.ReadU32(m);
+					for (uint i = 0; i < classCount; i++)
+					{
+						ushort len = Helper.ReadU16(m);
+						m.Seek(len, SeekOrigin.Current);
+						Helper.ReadU16(m); // version
+					}
+					long dictEndPos = m.Position;
+					
+					long dictLength = dictEndPos - startPos;
+					m.Position = startPos;
+					ClassDictionary = new byte[dictLength];
+					m.Read(ClassDictionary, 0, (int)dictLength);
+
+					m.Position = dictEndPos;
+					long paramLength = m.Length - m.Position;
+					ParameterData = new byte[paramLength];
+					m.Read(ParameterData, 0, (int)paramLength);
+				}
+				else
+				{
+					ClassDictionary = new byte[0];
+					ParameterData = new byte[remaining];
+					m.Read(ParameterData, 0, remaining);
+				}
+			}
+			else
+			{
+				ClassDictionary = new byte[0];
+				ParameterData = new byte[0];
+			}
 		}
 
 		/// <summary>

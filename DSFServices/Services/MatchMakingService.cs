@@ -19,6 +19,14 @@ namespace DSFServices.Services
 		static uint GatheringIdCounter = 39000;
 		static List<SentInvitation> InvitationList = new List<SentInvitation>();
 
+		[RMCMethod(0, "SetPlayerAvailableForMatchMaking_V5")]
+		public RMCResult SetPlayerAvailableForMatchMaking()
+		{
+			var plInfo = Context.Client.PlayerInfo;
+			QLog.WriteLine(1, $"Player {plInfo.PID} is now available for matchmaking");
+			return Result(new { retVal = true });
+		}
+		
 		[RMCMethod(1)]
 		public RMCResult RegisterGathering(AnyData<HermesPartySession> anyGathering)
 		{
