@@ -1,4 +1,4 @@
-﻿using DSFServices.DDL.Models;
+using DSFServices.DDL.Models;
 using QNetZ;
 using QNetZ.DDL;
 using System.Collections.Generic;
@@ -34,7 +34,6 @@ namespace DSFServices
 
 			foreach (var session in participatingSessions)
 			{
-				session.HostURLs.RemoveAll(x => x.Compare(playerInfo.Url));
 				RemovePlayerFromSession(session, playerInfo.PID);
 			}
 
@@ -71,7 +70,6 @@ namespace DSFServices
 		public GameSessionData()
 		{
 			Attributes = new Dictionary<uint, uint>();
-			HostURLs = new List<StationURL>();
 			Participants = new HashSet<uint>();
 			PublicParticipants = new HashSet<uint>();
 		}
@@ -86,7 +84,6 @@ namespace DSFServices
 
 		public Dictionary<uint, uint> Attributes { get; set; }
 		public uint HostPID { get; set; }
-		public List<StationURL> HostURLs { get; set; }
 		public HashSet<uint> Participants { get; set; }			// ID, Private
 		public HashSet<uint> PublicParticipants { get; set; }   // ID, Public
 

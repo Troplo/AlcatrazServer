@@ -11,14 +11,14 @@ namespace QNetZ.DDL
 
 		public string _urlScheme;
 		public string _address;
-		private Dictionary<string, int> _parameters;
+		private Dictionary<string, string> _parameters;
 		private bool _dirty;
 
 		public StationURL()
 		{
 			_urlScheme = "";
 			_address = "";
-			_parameters = new Dictionary<string, int>();
+			_parameters = new Dictionary<string, string>();
 			_dirty = false;
 
 			Valid = false;
@@ -30,6 +30,21 @@ namespace QNetZ.DDL
 		}
 
 		public StationURL(string scheme, string address, IDictionary<string, int> parameters) : this()
+		{
+			_urlScheme = scheme;
+			_address = address;
+
+			if (parameters != null)
+			{
+				foreach (var key in parameters.Keys)
+				{
+					_parameters.TryAdd(key, parameters[key].ToString());
+				}
+			}
+			_dirty = true;
+		}
+
+		public StationURL(string scheme, string address, IDictionary<string, string> parameters) : this()
 		{
 			_urlScheme = scheme;
 			_address = address;
@@ -63,11 +78,13 @@ namespace QNetZ.DDL
 		{
 			get
 			{
-				return _parameters[key];
+				if (_parameters.TryGetValue(key, out var strVal) && int.TryParse(strVal, out var intVal))
+					return intVal;
+				return 0;
 			}
 			set
 			{
-				_parameters[key] = value;
+				_parameters[key] = value.ToString();
 				_dirty = true;
 			}
 		}
@@ -75,20 +92,20 @@ namespace QNetZ.DDL
 		public string UrlScheme { get => _urlScheme; set { _urlScheme = value; _dirty = true; } }  // "prudp" or "prudps"
 
 		public string Address { get => _address; set { _address = value; _dirty = true; } }
-		public Dictionary<string, int> Parameters { get => _parameters; set { _parameters = value; _dirty = true; } }
+		public Dictionary<string, string> Parameters { get => _parameters; set { _parameters = value; _dirty = true; } }
 
 		public bool IsPublic {
 			get {
-				int type = 0;
-				_parameters.TryGetValue("type", out type);
-				return (type & 2) != 0; 
+				if (_parameters.TryGetValue("type", out var typeStr) && int.TryParse(typeStr, out var type))
+					return (type & 2) != 0; 
+				return false;
 			}
 		}
 		public bool IsBehindNAT {
 			get {
-				int type = 0;
-				_parameters.TryGetValue("type", out type);
-				return (type & 1) != 0; 
+				if (_parameters.TryGetValue("type", out var typeStr) && int.TryParse(typeStr, out var type))
+					return (type & 1) != 0; 
+				return false;
 			}
 		}
 		public bool IsGlobal { get => IsPublic && IsBehindNAT; }
@@ -127,23 +144,26 @@ namespace QNetZ.DDL
 			_dirty = false;
 			Valid = false;
 
-			var urlParts = newUrlValue.Split(":/");
+			var urlParts = newUrlValue.Split(new[] { ":/" }, 2, StringSplitOptions.None);
 			if (urlParts.Length != 2)
 				return;
 
 			_urlScheme = urlParts[0];
 
-			var parameterList = urlParts[1].Split(";");
+			var paramString = urlParts[1].Replace('#', ';');
+			var parameterList = paramString.Split(';');
 			foreach(var param in parameterList)
 			{
-				var key_value = param.Split("=");
+				if (string.IsNullOrEmpty(param)) continue;
+
+				var key_value = param.Split(new[] { '=' }, 2);
 				if (key_value.Length != 2)
-					return;
+					continue;
 
 				if (key_value[0] == "address")
 					_address = key_value[1];
 				else
-					_parameters.TryAdd(key_value[0], Convert.ToInt32(key_value[1]));
+					_parameters.TryAdd(key_value[0], key_value[1]);
 			}
 
 			_urlString = newUrlValue;
@@ -182,9 +202,7 @@ namespace QNetZ.DDL
 
 			foreach (var paramName in compareParameters)
 			{
-				int param = 0;
-				int otherParam = 0;
-				if(_parameters.TryGetValue(paramName, out param) && otherUrl._parameters.TryGetValue(paramName, out otherParam))
+				if(_parameters.TryGetValue(paramName, out var param) && otherUrl._parameters.TryGetValue(paramName, out var otherParam))
 				{
 					if (param != otherParam)
 						return false;

@@ -19,7 +19,8 @@ namespace RDVServices.Services
 			// Then clients communicate with each other...
 			foreach (var urlTarget in urlTargetList)
 			{
-				var endp = new IPEndPoint(IPAddress.Parse(urlTarget.Address), urlTarget.Parameters["port"]);
+				var port = int.Parse(urlTarget.Parameters["port"]);
+				var endp = new IPEndPoint(IPAddress.Parse(urlTarget.Address), port);
 				var qclient = Context.Handler.GetQClientByEndPoint(endp);
 
 				if(qclient != null)

@@ -1,4 +1,4 @@
-﻿using QNetZ.DDL;
+using QNetZ.DDL;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -29,6 +29,8 @@ namespace QNetZ
 		public uint StationID;
 		public string AccountId;
 		public string Name { get; set; }
+
+		public List<StationURL> PlayerURLs { get; set; } = new List<StationURL>();
 
 		public StationURL Url
 		{

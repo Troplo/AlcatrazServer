@@ -1,4 +1,4 @@
-﻿using QNetZ.DDL;
+using QNetZ.DDL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -92,7 +92,7 @@ namespace DSFServices.DDL.Models
 		}
 
 		public GameSessionKey m_sessionKey { get; set; }
-		public uint m_hostPID { get; set; }
+		public qUUID m_hostPID { get; set; }
 		public ICollection<StationURL> m_hostURLs { get; set; }
 		public ICollection<GameSessionProperty> m_attributes { get; set; }
 	}

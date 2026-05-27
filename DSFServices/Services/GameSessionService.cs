@@ -222,26 +222,31 @@ namespace DSFServices.Services
 		public RMCResult GetSession(GameSessionKey gameSessionKey)
 		{
 			var searchResult = new GameSessionSearchResult();
-				QLog.WriteLine(1, $"GetSession_V1: KeySid={gameSessionKey.m_sessionID}, KeyType={gameSessionKey.m_typeID} player={Context.Client.PlayerInfo?.Name}");
+			QLog.WriteLine(1, $"GetSession_V1: KeySid={gameSessionKey.m_sessionID}, KeyType={gameSessionKey.m_typeID} player={Context.Client.PlayerInfo?.Name}");
 
 			var session = GameSessions.SessionList.FirstOrDefault(x => x.Id == gameSessionKey.m_sessionID && x.TypeID == gameSessionKey.m_typeID);
 
-			// if (session != null)
+			if (session != null)
 			{
+				var hostPlayer = NetworkPlayers.GetPlayerInfoByPID(session.HostPID);
+
 				searchResult = new GameSessionSearchResult()
 				{
-					m_hostPID = 6969,
-					m_hostURLs = {},
-					m_attributes = {},
+					m_hostPID = qUUID.FromPID(session.HostPID),
+					m_hostURLs = hostPlayer?.PlayerURLs ?? new List<StationURL>(),
+					m_attributes = session.Attributes.Select(x => new GameSessionProperty { ID = x.Key, Value = x.Value }).ToArray(),
 					m_sessionKey = new GameSessionKey()
 					{
-						m_sessionID = 1632043023,
-						m_typeID = 3
+						m_sessionID = session.Id,
+						m_typeID = session.TypeID
 					}
 				};
-				// QLog.WriteLine(1, $"GetSession_V1: session={session.Id} player={Context.Client.PlayerInfo?.Name}");
+				QLog.WriteLine(1, $"GetSession_V1: session={session.Id} player={Context.Client.PlayerInfo?.Name}");
 			}
+			else
+			{
 				QLog.WriteLine(1, $"GetSession_V1: session=None");
+			}
 
 			return Result(searchResult);
 		}
@@ -275,10 +280,12 @@ namespace DSFServices.Services
 				if(sessionGameType >= gameTypeMinParam.Value && sessionGameType <= gameTypeMaxParam.Value &&
 					ses.PublicParticipants.Count < totalPublicSlotsParam.Value)
 				{
+					var hostPlayer = NetworkPlayers.GetPlayerInfoByPID(ses.HostPID);
+
 					resultList.Add(new GameSessionSearchResult()
 					{
-						m_hostPID = ses.HostPID,
-						m_hostURLs = ses.HostURLs,
+						m_hostPID = qUUID.FromPID(ses.HostPID),
+						m_hostURLs = hostPlayer?.PlayerURLs ?? new List<StationURL>(),
 						m_attributes = ses.Attributes.Select(x => new GameSessionProperty { ID = x.Key, Value = x.Value }).ToArray(),
 						m_sessionKey = new GameSessionKey()
 						{
@@ -482,15 +489,10 @@ namespace DSFServices.Services
 			var plInfo = Context.Client.PlayerInfo;
 			var myPlayerId = plInfo.PID;
 			var session = GameSessions.SessionList.FirstOrDefault(x => x.HostPID == myPlayerId);
+			
+			plInfo.PlayerURLs = stationURLs.ToList();
+
 			QLog.WriteLine(1, $"Session hosted by pid={myPlayerId}. Session={session?.Id}, URLs: {string.Join(", ", stationURLs.Select(x => x.ToString()))}");
-			if (session != null)
-			{
-				session.HostURLs.Clear();
-				session.HostURLs.AddRange(stationURLs);
-			}
-			else
-			{
-			}
 
 			return Result(new { retVal = true });
 		}
