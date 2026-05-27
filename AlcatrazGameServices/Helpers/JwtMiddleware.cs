@@ -56,9 +56,9 @@ namespace Alcatraz.GameServices.Helpers
 
 				var jwtToken = (JwtSecurityToken)validatedToken;
 				var nameId = jwtToken.Claims.FirstOrDefault(x => x.Type == "uid");
-				var userId = uint.Parse(nameId.Value);
+				var userId = Guid.Parse(nameId.Value);
 
-				context.Items["User"] = userService.GetById(userId);
+				context.Items["User"] = userService.GetByIdGuid(userId);
 			}
 			catch
 			{

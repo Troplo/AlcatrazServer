@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -97,6 +97,12 @@ namespace QNetZ.DDL
             else if (currentType == typeof(ushort))
             {
                 instance = Helper.ReadU16(str);
+            }
+            else if (currentType == typeof(Guid))
+            {
+                var array = new byte[16];
+                str.Read(array, 0, 16);
+                instance = new Guid(array);
             }
             else if (currentType == typeof(byte[])) // This is Quazal.Buffer with 32 bit size
             {
@@ -274,6 +280,11 @@ namespace QNetZ.DDL
             {
                 Helper.WriteU16(str, (ushort)(short)obj);
             }
+            else if (currentType == typeof(Guid))
+            {
+                var array = ((Guid)obj).ToByteArray();
+                str.Write(array, 0, array.Length);
+            }
             else if (currentType == typeof(byte[])) // This is Quazal.Buffer with 32 bit size
             {
                 var array = (byte[])obj;
@@ -308,19 +319,27 @@ namespace QNetZ.DDL
             }
             else if (typeof(IEnumerable).IsAssignableFrom(currentType))
             {
-                var arrayValues = (IEnumerable<object>)obj;
+                var arrayValues = (IEnumerable)obj;
 
                 var arrayItemType = currentType.GetGenericArguments().SingleOrDefault();
 
-                var size = arrayValues.Count();
+                int size = 0;
+                if (arrayValues is ICollection col)
+                {
+                    size = col.Count;
+                }
+                else
+                {
+                    foreach (var item in arrayValues) size++;
+                }
 
                 // store array size
                 Helper.WriteU32(str, (uint)size);
 
                 // write items
-                for (int i = 0; i < size; i++)
+                foreach (var item in arrayValues)
                 {
-                    WriteObject(arrayItemType, arrayValues.ElementAt(i), str);
+                    WriteObject(arrayItemType, item, str);
                 }
             }
 			else

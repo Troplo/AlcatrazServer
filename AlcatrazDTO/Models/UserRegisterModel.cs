@@ -1,10 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Alcatraz.DTO.Models
 {
 	public class UserRegisterModel
 	{
-		public string Username { get; set; }
+		public string Email { get; set; }
 
 		public string Password { get; set; }
 

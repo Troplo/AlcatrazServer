@@ -128,11 +128,11 @@ namespace DSFServices.Services
 			var pids = new Dictionary<string, uint>();
 			using (var db = DBHelper.GetDbContext())
 			{
-				var usersList = db.Users.Where(x => ubiAccountIds.Contains(x.Username)).ToArray();
+				var usersList = db.Users.Where(x => ubiAccountIds.Contains(x.Email)).ToArray();
 
 				foreach (var usr in usersList)
 				{
-					pids[usr.Username] = usr.Id;
+					pids[usr.Email] = usr.Id;
 				}
 			}
 			return Result(pids);
@@ -167,7 +167,7 @@ namespace DSFServices.Services
 
 				foreach(var usr in usersList)
 				{
-					UbiAccountIDs[usr.Username] = usr.PlayerNickName;
+					UbiAccountIDs[usr.Email] = usr.PlayerNickName;
 				}
 			}
 
@@ -181,11 +181,11 @@ namespace DSFServices.Services
 
 			using (var db = DBHelper.GetDbContext())
 			{
-				var usersList = db.Users.Where(x => UbiAccountIds.Contains(x.Username)).ToArray();
+				var usersList = db.Users.Where(x => UbiAccountIds.Contains(x.Email)).ToArray();
 
 				foreach (var usr in usersList)
 				{
-					Usernames[usr.Username] = usr.Username;
+					Usernames[usr.Email] = usr.Email;
 				}
 			}
 

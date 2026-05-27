@@ -76,8 +76,8 @@ namespace RDVServices.Services
 
 				playerInfo = NetworkPlayers.CreatePlayerInfo(Context.Client);
 				playerInfo.PID = user.Id;
-				playerInfo.AccountId = user.Username;
-				playerInfo.Name = user.Username;
+				playerInfo.AccountId = user.Email;
+				playerInfo.Name = user.Email;
 				ticketKey = Constants.UbiDummyPassword;
 			}
 

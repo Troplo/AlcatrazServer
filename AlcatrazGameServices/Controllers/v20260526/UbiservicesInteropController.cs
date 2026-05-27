@@ -64,8 +64,8 @@ public class UbiservicesInteropController : ControllerBase
             userId = user.Id,
             profileId = user.Id.ToString(),
             nameOnPlatform = user.PlayerNickName,
-            username = user.Username,
-            uuid = $"00000000-0000-0000-0000-{user.Id:D12}"
+            username = user.Email,
+            uuid = user.Guid
         });
     }
 }

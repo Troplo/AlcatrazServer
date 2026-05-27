@@ -54,7 +54,7 @@ namespace Alcatraz.GameServices.Pages.Account
 			var result = _userService.Register(RegisterModel);
             if(result.Success)
 			{
-				var user = _userService.GetById(result.Id);
+				var user = _userService.GetByIdGuid(result.Id);
 
 				if(user != null)
 				{

@@ -1,4 +1,5 @@
-﻿using Alcatraz.GameServices.Helpers;
+using System;
+using Alcatraz.GameServices.Helpers;
 using Alcatraz.GameServices.Services;
 using Alcatraz.DTO.Models;
 
@@ -84,7 +85,7 @@ namespace Alcatraz.GameServices.Controllers
 			if (user == null)
 				return Unauthorized(new ResultModel("Unable to change user password"));
 
-			var result = _userService.ChangePassword(user.Id, model.NewPassword);
+			var result = _userService.ChangePassword(user.Guid, model.NewPassword);
 
 			if (!result.Success)
 				return BadRequest(result);
@@ -137,7 +138,7 @@ namespace Alcatraz.GameServices.Controllers
 
 			var profileConfig = new ProfileConfig()
 			{
-				Username = currentUser.Username,
+				Username = currentUser.Email,
 				AccountId = currentUser.PlayerNickName,
 				Password = passwordHash,
 

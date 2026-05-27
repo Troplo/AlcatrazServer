@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Alcatraz.Context.Entities;
 using Microsoft.EntityFrameworkCore;
 using DSFServices.DDL.Models;
 using QNetZ;
@@ -22,6 +24,7 @@ namespace DSFServices.Services
         {
             var client = Context.Client;
             var playerInfo = NetworkPlayers.CreatePlayerInfo(client);
+            Guid userGuid = Guid.Empty;
 
             using (var db = RDVServices.DBHelper.GetDbContext())
             {
@@ -32,7 +35,9 @@ namespace DSFServices.Services
                 if (sessionToken != null && sessionToken.User != null)
                 {
                     playerInfo.PID = sessionToken.User.Id;
-                    playerInfo.Name = sessionToken.User.PlayerNickName;
+                    playerInfo.Name = sessionToken.User.PlayerNickName; 
+                    playerInfo.AccountId = sessionToken.User.Guid.ToString();
+                    userGuid = sessionToken.User.Guid;
                 }
                 else
                 { 
@@ -42,30 +47,32 @@ namespace DSFServices.Services
                 }
             }
 
-            playerInfo.AccountId = $"00000000-0000-0000-0000-{playerInfo.PID:D12}";
 
             client.PlayerInfo = playerInfo;
             playerInfo.Client = client;
 
             QLog.WriteLine(1, $"[QRV] LoginWithToken_V2: logged in as PID={playerInfo.PID} name={playerInfo.Name}. Token: {strToken}, OnlineKey: {strOnlineKey}, ClientVersion: {clientVersionInfo}");
 
-            var m = new MemoryStream();
-
-            m.Write(new byte[] { 0,0,0,0, 0,0, 0,0, 0,0, 0,0,0,0,0,1 }, 0, 16);
-
             var host = QConfiguration.Instance.ServiceURLHostName
                        ?? QConfiguration.Instance.ServerBindAddress
                        ?? "127.0.0.1";
             var port = QConfiguration.Instance.RDVServerPort;
-            var secureUrl = $"prudp:/address={host};port={port};CID=1;PID={playerInfo.PID};sid=1;stream=3;type=2";
+            var secureUrl = new StationURL($"prudp:/address={host};port={port};CID=1;PID={playerInfo.PID};sid=1;stream=3;type=2");
 
-            Helper.WriteString(m, secureUrl);  // m_urlRegularProtocols
-            Helper.WriteU32(m, 0);             // m_lstSpecialProtocols (empty)
-            Helper.WriteString(m, secureUrl);  // m_urlSpecialProtocols
+            var result = new LoginResult()
+            {
+                pidProfile = userGuid,
+                pConnectionData = new RVConnectionData()
+                {
+                    m_urlRegularProtocols = secureUrl,
+                    m_lstSpecialProtocols = new List<byte>(),
+                    m_urlSpecialProtocols = secureUrl,
+                    nid = 0
+                }
+            };
 
-            return Result(m.ToArray());
+            return Result(result);
         }
-
 
         [RMCMethod(0, Name = "Register_V1")]
         public RMCResult Register(List<string> vecMyURLs)

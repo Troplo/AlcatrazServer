@@ -20,9 +20,10 @@ namespace Alcatraz.GameServices.Services
 		AuthenticateResponse Authenticate(AuthenticateRequest model);
 		ResultModel Register(UserRegisterModel model);
 		ResultModel Update(UserModel model);
-		ResultModel ChangePassword(uint userId, string newPassword);
+		ResultModel ChangePassword(Guid userId, string newPassword);
 		IEnumerable<UserModel> GetAll();
 		UserModel GetById(uint id);
+		UserModel GetByIdGuid(Guid id);
 
 		public IEnumerable<Claim> GetUserClaims(UserModel user);
 		string GenerateJwtToken(UserModel userModel);
@@ -44,7 +45,7 @@ namespace Alcatraz.GameServices.Services
 		{
 			var user = _dbContext.Users
 				.AsNoTracking()
-				.SingleOrDefault(x => x.Username == model.Username);
+				.SingleOrDefault(x => x.Email == model.Email);
 
 			// return null if user not found
 			if (user == null) 
@@ -58,8 +59,9 @@ namespace Alcatraz.GameServices.Services
 			var userModel = new UserModel
 			{
 				Id = user.Id,
+				Guid = user.Guid,
 				PlayerNickName = user.PlayerNickName,
-				Username = user.Username,
+				Email = user.Email,
 				RewardFlags = user.RewardFlags
 			};
 
@@ -76,12 +78,13 @@ namespace Alcatraz.GameServices.Services
 				.Select(x => new UserModel
 				{
 					Id = x.Id,
+					Guid = x.Guid,
 					PlayerNickName = x.PlayerNickName,
-					Username = x.Username,
+					Email = x.Email,
 					RewardFlags = x.RewardFlags
 				}).ToArray();
 		}
-
+		
 		public UserModel GetById(uint id)
 		{
 			return _dbContext.Users
@@ -89,22 +92,38 @@ namespace Alcatraz.GameServices.Services
 				.Select(x => new UserModel
 				{
 					Id = x.Id,
+					Guid = x.Guid,
 					PlayerNickName = x.PlayerNickName,
-					Username = x.Username,
+					Email = x.Email,
 					RewardFlags = x.RewardFlags
 				})
 				.FirstOrDefault(x => x.Id == id);
 		}
 
-		private User GetByIdInternal(uint id)
+		public UserModel GetByIdGuid(Guid id)
 		{
-			return _dbContext.Users.FirstOrDefault(x => x.Id == id);
+			return _dbContext.Users
+				.AsNoTracking()
+				.Select(x => new UserModel
+				{
+					Id = x.Id,
+					Guid = x.Guid,
+					PlayerNickName = x.PlayerNickName,
+					Email = x.Email,
+					RewardFlags = x.RewardFlags
+				})
+				.FirstOrDefault(x => x.Guid == id);
+		}
+
+		private User GetByIdInternal(Guid id)
+		{
+			return _dbContext.Users.FirstOrDefault(x => x.Guid == id);
 		}
 
 		public ResultModel Register(UserRegisterModel model)
 		{
-			if (string.IsNullOrWhiteSpace(model.Username))
-				return new ResultModel("Username is incorrect or empty");
+			if (string.IsNullOrWhiteSpace(model.Email))
+				return new ResultModel("Email is incorrect or empty");
 
 			if (string.IsNullOrWhiteSpace(model.PlayerNickName))
 				return new ResultModel("PlayerNickName is incorrect or empty");
@@ -114,7 +133,7 @@ namespace Alcatraz.GameServices.Services
 
 			var newUser = new User()
 			{
-				Username = model.Username,
+				Email = model.Email,
 				PlayerNickName = model.PlayerNickName,
 				Password = "tmp",
 			};
@@ -125,7 +144,7 @@ namespace Alcatraz.GameServices.Services
 				_dbContext.Users.Add(new User()
 				{
 					Id = 1000,
-					Username = "dummy",
+					Email = "dummy",
 					PlayerNickName = "dummy",
 					Password = "dummy",
 					RewardFlags = 0,
@@ -133,7 +152,7 @@ namespace Alcatraz.GameServices.Services
 				_dbContext.SaveChanges();
 			}
 
-			if (_dbContext.Users.Any(x => x.Username == model.Username || x.PlayerNickName == model.PlayerNickName))
+			if (_dbContext.Users.Any(x => x.Email == model.Email || x.PlayerNickName == model.PlayerNickName))
 				return new ResultModel("User with same name or nickname is already present");
 
 			try
@@ -152,25 +171,25 @@ namespace Alcatraz.GameServices.Services
 				_dbContext.SaveChanges();
 			}
 
-			return new ResultModel(newUser.Id);
+			return new ResultModel(newUser.Guid);
 		}
 
 		public ResultModel Update(UserModel model)
 		{
-			var user = GetByIdInternal(model.Id);
+			var user = GetByIdInternal(model.Guid);
 
 			if (user == null)
 				return new ResultModel("User with that Id was not found");
 
-			if(user.Username == model.Username && user.PlayerNickName == model.PlayerNickName)
+			if(user.Email == model.Email && user.PlayerNickName == model.PlayerNickName)
 			{
 				// User name and nickname remains unchanged
 				return new ResultModel();
 			}
 
-			if (user.Username != model.Username && _dbContext.Users.Any(x => x.Username == model.Username))
+			if (user.Email != model.Email && _dbContext.Users.Any(x => x.Email == model.Email))
 			{
-				return new ResultModel("User with same name is already present");
+				return new ResultModel("User with same email is already present");
 			}
 
 			if (user.PlayerNickName != model.PlayerNickName && _dbContext.Users.Any(x => x.PlayerNickName == model.PlayerNickName))
@@ -180,7 +199,7 @@ namespace Alcatraz.GameServices.Services
 
 			try
 			{
-				user.Username = model.Username;
+				user.Email = model.Email;
 				user.PlayerNickName = model.PlayerNickName;
 
 				_dbContext.SaveChanges();
@@ -193,7 +212,7 @@ namespace Alcatraz.GameServices.Services
 			return new ResultModel();
 		}
 
-		public ResultModel ChangePassword(uint userId, string newPassword)
+		public ResultModel ChangePassword(Guid userId, string newPassword)
 		{
 			var user = GetByIdInternal(userId);
 
@@ -236,7 +255,7 @@ namespace Alcatraz.GameServices.Services
 		{
 			return new[] {
 				new Claim("uid", user.Id.ToString()),
-				new Claim(ClaimTypes.Name, user.Username), // FIXME: Email?
+				new Claim(ClaimTypes.Name, user.Email),
 			};
 		}
 	}

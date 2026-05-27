@@ -58,14 +58,17 @@ namespace Alcatraz.GameServices.Pages.Account
 			if (uint.TryParse(uidClaim.Value, out uid))
 				CurrentUser = _userService.GetById(uid);
 
-			EditModel = new UserModel()
-            {
-                Id = CurrentUser.Id,
-                PlayerNickName = CurrentUser.PlayerNickName,
-                Username = CurrentUser.Username
-			};
+			if (CurrentUser != null)
+			{
+				EditModel = new UserModel()
+				{
+					Id = CurrentUser.Id,
+					PlayerNickName = CurrentUser.PlayerNickName,
+					Email = CurrentUser.Email
+				};
 
-			CurrentUserName = HttpContext.User.Identity.Name;
+				CurrentUserName = HttpContext.User.Identity.Name;
+			}
 
 			return Page();
 		}
@@ -107,12 +110,12 @@ namespace Alcatraz.GameServices.Pages.Account
 						return Page();
 					}
 
-					_userService.ChangePassword(CurrentUser.Id, NewPassword);
+					_userService.ChangePassword(CurrentUser.Guid, NewPassword);
 				}
 				PasswordErrorMessage = "";
 
 				// authenticate again
-				var user = _userService.GetById(CurrentUser.Id);
+				var user = _userService.GetByIdGuid(CurrentUser.Guid);
 
 				if (user != null)
 				{
@@ -157,7 +160,7 @@ namespace Alcatraz.GameServices.Pages.Account
 			{
 				Id = CurrentUser.Id,
 				PlayerNickName = CurrentUser.PlayerNickName,
-				Username = CurrentUser.Username
+				Email = CurrentUser.Email
 			};
 
 			// Generate PIN

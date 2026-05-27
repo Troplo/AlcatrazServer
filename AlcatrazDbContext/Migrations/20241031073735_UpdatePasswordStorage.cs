@@ -20,15 +20,6 @@ namespace Alcatraz.Context.Migrations
 		/// <inheritdoc />
 		protected override void Up(MigrationBuilder migrationBuilder)
         {
-			foreach (var user in _dbContext.Users)
-            {
-				user.Password = SecurePasswordHasher.Hash($"{user.Id}-{user.Password}");
-			}
-        }
-
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
         }
     }
 

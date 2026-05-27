@@ -21,7 +21,8 @@ namespace Alcatraz.GameServices.Controllers.v20260526
 			var response = new UserResponse
 			{
 				id = user.Id,
-				username = user.Username,
+				uuid = user.Guid,
+				email = user.Email,
 				nickname = user.PlayerNickName
 			};
 

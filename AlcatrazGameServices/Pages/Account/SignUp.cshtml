@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model Alcatraz.GameServices.Pages.Account.SignUpModel
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
@@ -11,7 +11,7 @@
     <div class="col-md-4">
         <form method="post" asp-route="SignUp">
             <div class="form-group mb-3">
-                <label class="control-label">Login</label> <input class="form-control" asp-for="@Model.RegisterModel.Username" />
+                <label class="control-label">Login</label> <input class="form-control" asp-for="@Model.RegisterModel.Email" />
                 <label class="control-label">In-game Nickname</label> <input class="form-control" asp-for="@Model.RegisterModel.PlayerNickName" />
                 <label class="control-label">Password</label> <input class="form-control" type="password" asp-for="@Model.RegisterModel.Password" />
                 <label class="control-label">Retype Password</label> <input class="form-control" type="password" asp-for="@Model.RegisterModel.PasswordRetype" />

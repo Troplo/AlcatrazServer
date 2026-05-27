@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,14 +16,14 @@ namespace Alcatraz.DTO.Models
 			ErrorMessage = errMessage;
 		}
 
-		public ResultModel(uint id)
+		public ResultModel(Guid id)
 		{
 			Success = true;
 			Id = id;
 		}
 
 		public bool Success { get; set; } = true;
-		public uint Id { get; set; } = 0;
+		public Guid Id { get; set; } = Guid.Empty;
 		private string _Message;
 		public string ErrorMessage { 
 			get { return _Message; } 
