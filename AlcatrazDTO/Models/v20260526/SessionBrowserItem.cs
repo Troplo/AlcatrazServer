@@ -4,12 +4,13 @@ namespace Alcatraz.DTO.Models.v20260526
 {
 	public class SessionBrowserItem
 	{
-		public uint Id { get; set; }
-		public uint TypeID { get; set; }
-		public uint HostPID { get; set; }
-		public List<string> HostURLs { get; set; }
-		public Dictionary<uint, uint> Attributes { get; set; }
-		public List<uint> PublicParticipants { get; set; }
-		public List<uint> PrivateParticipants { get; set; }
+		public uint id { get; set; }
+		public uint typeID { get; set; }
+		public uint hostPID { get; set; }
+		public List<string> hostURLs { get; set; }
+		public Dictionary<uint, uint> attributes { get; set; }
+		public List<uint> publicParticipants { get; set; }
+		public List<uint> privateParticipants { get; set; }
+		public string ownerNickname { get; set; }
 	}
 }

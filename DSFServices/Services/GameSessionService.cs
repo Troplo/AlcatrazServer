@@ -300,7 +300,7 @@ namespace DSFServices.Services
 		}
 
 
-		[RMCMethod(8)]
+		[RMCMethod(8, "AddParticipants_V1")]
 		public RMCResult AddParticipants(GameSessionKey gameSessionKey, IEnumerable<uint> publicParticipantIDs, IEnumerable<uint> privateParticipantIDs)
 		{
 			var session = GameSessions.SessionList.FirstOrDefault(x => x.IsMatchingKey(gameSessionKey));
@@ -337,12 +337,6 @@ namespace DSFServices.Services
 				QLog.WriteLine(1, $"Error : GameSessionService.AddParticipants - no session with id={gameSessionKey.m_sessionID}");
 			}
 
-			return Error(0);
-		}
-
-		[RMCMethod(0, "AddParticipants_V1")]
-		public RMCResult AddParticipantsQZ()
-		{
 			return Error(0);
 		}
 
@@ -490,7 +484,11 @@ namespace DSFServices.Services
 			var myPlayerId = plInfo.PID;
 			var session = GameSessions.SessionList.FirstOrDefault(x => x.HostPID == myPlayerId);
 			
-			plInfo.PlayerURLs = stationURLs.ToList();
+			plInfo.PlayerURLs.Clear();
+			if (stationURLs != null)
+			{
+				plInfo.PlayerURLs.AddRange(stationURLs);
+			}
 
 			QLog.WriteLine(1, $"Session hosted by pid={myPlayerId}. Session={session?.Id}, URLs: {string.Join(", ", stationURLs.Select(x => x.ToString()))}");
 
@@ -540,12 +538,29 @@ namespace DSFServices.Services
 		}
 
 
-		[RMCMethod(28)]
-		public void SplitSession()
+		[RMCMethod(28, "SplitSession_V1")]
+		public RMCResult SplitSession(GameSessionKey gameSessionKey)
 		{
-			UNIMPLEMENTED();
-		}
+			var session = GameSessions.SessionList.FirstOrDefault(x =>
+				x.Id == gameSessionKey.m_sessionID &&
+				x.TypeID == gameSessionKey.m_typeID);
 
+			if (session == null)
+			{
+				QLog.WriteLine(1,
+					$"Error : GameSessionService.SplitSession - no session with id={gameSessionKey.m_sessionID}");
+				return Error(0);
+			}
+
+			var newHostPid = Context.Client.PlayerInfo.PID;
+
+			session.HostPID = newHostPid;
+
+			QLog.WriteLine(1,
+				$"SplitSession - host migrated to PID={newHostPid} for session={session.Id}");
+
+			return Result(gameSessionKey);
+		}
 
 		[RMCMethod(29)]
 		public void SearchSocialSessions()

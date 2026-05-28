@@ -1,4 +1,4 @@
-﻿using Alcatraz.DTO.Helpers;
+using Alcatraz.DTO.Helpers;
 using RDVServices.DDL.Models;
 using QNetZ;
 using QNetZ.Attributes;
@@ -41,6 +41,12 @@ namespace RDVServices.Services
 			{
 				QLog.WriteLine(1, $"User login request {userName}");
 
+				playerInfo = NetworkPlayers.GetPlayerInfoByUsername(userName);
+				if (playerInfo != null)
+				{
+					NetworkPlayers.DropPlayerInfo(playerInfo);
+				}
+
 				playerInfo = NetworkPlayers.CreatePlayerInfo(Context.Client);
 				if (userName == "Tracking")
 				{
@@ -64,12 +70,19 @@ namespace RDVServices.Services
 
 				playerInfo = NetworkPlayers.GetPlayerInfoByUsername(userName);
 
-				if (playerInfo != null &&
-					!playerInfo.Client.Endpoint.Equals(Context.Client.Endpoint) &&
-					playerInfo.Client.TimeSinceLastPacket < Constants.ClientTimeoutSeconds)
+				if (playerInfo != null)
 				{
-					QLog.WriteLine(1, $"User login request {userName} DENIED - concurrent login!");
-					return Error((int)ErrorCode.RendezVous_ConcurrentLoginDenied);
+					if (playerInfo.Client != null &&
+						!playerInfo.Client.Endpoint.Equals(Context.Client.Endpoint) &&
+						playerInfo.Client.TimeSinceLastPacket < Constants.ClientTimeoutSeconds)
+					{
+						QLog.WriteLine(1, $"User login request {userName} DENIED - concurrent login!");
+						return Error((int)ErrorCode.RendezVous_ConcurrentLoginDenied);
+					}
+					else
+					{
+						NetworkPlayers.DropPlayerInfo(playerInfo);
+					}
 				}
 
 				QLog.WriteLine(1, $"User login request {userName}");

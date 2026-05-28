@@ -23,7 +23,7 @@ namespace DSFServices.Services
         public RMCResult LoginWithToken(string strToken, string strOnlineKey, ClientVersionInfo clientVersionInfo, RVConnectionData rvConnectionData)
         {
             var client = Context.Client;
-            var playerInfo = NetworkPlayers.CreatePlayerInfo(client);
+            PlayerInfo playerInfo = null;
             Guid userGuid = Guid.Empty;
 
             using (var db = RDVServices.DBHelper.GetDbContext())
@@ -34,9 +34,20 @@ namespace DSFServices.Services
 
                 if (sessionToken != null && sessionToken.User != null)
                 {
-                    playerInfo.PID = sessionToken.User.Id;
-                    playerInfo.Name = sessionToken.User.PlayerNickName; 
-                    playerInfo.AccountId = sessionToken.User.Guid.ToString();
+                    playerInfo = NetworkPlayers.GetPlayerInfoByPID(sessionToken.User.Id);
+                    if (playerInfo != null)
+                    {
+                        playerInfo.Client = client;
+                        playerInfo.Name = sessionToken.User.PlayerNickName;
+                        playerInfo.AccountId = sessionToken.User.Guid.ToString();
+                    }
+                    else
+                    {
+                        playerInfo = NetworkPlayers.CreatePlayerInfo(client);
+                        playerInfo.PID = sessionToken.User.Id;
+                        playerInfo.Name = sessionToken.User.PlayerNickName; 
+                        playerInfo.AccountId = sessionToken.User.Guid.ToString();
+                    }
                     userGuid = sessionToken.User.Guid;
                 }
                 else

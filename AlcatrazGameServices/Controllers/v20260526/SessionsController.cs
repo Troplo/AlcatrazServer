@@ -2,6 +2,7 @@ using Alcatraz.DTO.Models.v20260526;
 using Alcatraz.GameServices.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
+using QNetZ;
 
 namespace Alcatraz.GameServices.Controllers.v20260526
 {
@@ -17,13 +18,14 @@ namespace Alcatraz.GameServices.Controllers.v20260526
 				var hostPlayer = QNetZ.NetworkPlayers.GetPlayerInfoByPID(s.HostPID);
 				return new SessionBrowserItem
 				{
-					Id = s.Id,
-					TypeID = s.TypeID,
-					HostPID = s.HostPID,
-					HostURLs = (hostPlayer?.PlayerURLs ?? new System.Collections.Generic.List<QNetZ.DDL.StationURL>()).Select(u => u.ToString()).ToList(),
-					Attributes = s.Attributes,
-					PublicParticipants = s.PublicParticipants.ToList(),
-					PrivateParticipants = s.Participants.ToList()
+					id = s.Id,
+					typeID = s.TypeID,
+					hostPID = s.HostPID,
+					hostURLs = (hostPlayer?.PlayerURLs ?? new System.Collections.Generic.List<QNetZ.DDL.StationURL>()).Select(u => u.ToString()).ToList(),
+					attributes = s.Attributes,
+					publicParticipants = s.PublicParticipants.ToList(),
+					privateParticipants = s.Participants.ToList(),
+					ownerNickname = hostPlayer?.Name ?? "Unknown"
 				};
 			}).ToList();
 

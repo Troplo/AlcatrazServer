@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace QNetZ
@@ -11,12 +11,12 @@ namespace QNetZ
 
 		public static PlayerInfo GetPlayerInfoByPID(uint pid)
 		{
-			return Players.SingleOrDefault(pl => pl.PID == pid);
+			return Players.FirstOrDefault(pl => pl.PID == pid);
 		}
 
 		public static PlayerInfo GetPlayerInfoByUsername(string userName)
 		{
-			return Players.SingleOrDefault(pl => pl.Name == userName);
+			return Players.FirstOrDefault(pl => pl.Name == userName);
 		}
 
 		public static PlayerInfo CreatePlayerInfo(QClient connection)
