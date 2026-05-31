@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -153,8 +153,8 @@ namespace QNetZ
 			QLog.WriteLine(10, () => $"[{SourceName}] send : {sendPacket.ToStringDetailed()}");
 
 			// bufferize in queue then send, that's how Quazal does it
-			if (!CacheResponse(reqPacket, sendPacket, ep))
-				UDP.Send(data, data.Length, ep);
+			CacheResponse(reqPacket, sendPacket, ep);
+			UDP.Send(data, data.Length, ep);
 
 			QLog.LogPacket(true, data);
 		}
@@ -221,7 +221,6 @@ namespace QNetZ
 		}
 
 		//-------------------------------------------------------------------------------------------
-
 		public void Update()
 		{
 			CheckResendPackets();

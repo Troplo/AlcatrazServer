@@ -26,7 +26,6 @@ namespace BackendDebugServer
 						m_uiParam1 = Convert.ToUInt32(txt_param1.Text),
 						m_uiParam2 = Convert.ToUInt32(txt_param2.Text),
 						m_strParam = txt_stringParam.Text,
-						m_uiParam3 = Convert.ToUInt32(txt_param3.Text)
 					};
 
                     NotificationQueue.AddNotification(evtData, client, 0);

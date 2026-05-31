@@ -35,7 +35,6 @@ namespace DSFServices.Services
 							m_uiParam1 = toJoinId,
 							m_uiParam2 = gameType,
 							m_strParam = $"NetZHost:{msgRequest}",
-							m_uiParam3 = 0
 						};
 
 						NotificationQueue.SendNotification(Context.Handler, qclient, notification);
@@ -70,7 +69,6 @@ namespace DSFServices.Services
 					m_uiParam1 = toJoinId,
 					m_uiParam2 = gameType,
 					m_strParam = $"NetZHost:{msgRequest}",
-					m_uiParam3 = 0
 				};
 
 				NotificationQueue.SendNotification(Context.Handler, qclient, notification);
@@ -99,7 +97,6 @@ namespace DSFServices.Services
 							m_uiParam1 = 0,
 							m_uiParam2 = 0,
 							m_strParam = "NotifyPartyToLeaveGame",
-							m_uiParam3 = 0
 						};
 
 						NotificationQueue.SendNotification(Context.Handler, qclient, notification);
@@ -161,7 +158,6 @@ namespace DSFServices.Services
 							m_uiParam1 = (uint)param1,
 							m_uiParam2 = (uint)param2,
 							m_strParam = "PartyLeaderNetZIsValid",
-							m_uiParam3 = 0
 						};
 
 						NotificationQueue.SendNotification(Context.Handler, qclient, notification);
@@ -210,7 +206,6 @@ namespace DSFServices.Services
 							m_uiParam1 = fromParty,
 							m_uiParam2 = (uint)nbPlayers,
 							m_strParam = $"MM:{toMatchmaking}|",
-							m_uiParam3 = (uint)applyMask
 						};
 
 						NotificationQueue.SendNotification(Context.Handler, qclient, notification);
@@ -263,7 +258,6 @@ namespace DSFServices.Services
 							m_uiParam1 = fromMatchmaking,
 							m_uiParam2 = (uint)approved,
 							m_strParam = "ResponseMatchmaking",
-							m_uiParam3 = 0
 						};
 
 						NotificationQueue.SendNotification(Context.Handler, qclient, notification);
@@ -297,7 +291,6 @@ namespace DSFServices.Services
 							m_uiParam1 = gid,
 							m_uiParam2 = pid,
 							m_strParam = packedSessions,
-							m_uiParam3 = 0
 						};
 
 						NotificationQueue.SendNotification(Context.Handler, qclient, notification);
@@ -339,7 +332,6 @@ namespace DSFServices.Services
 							m_uiParam1 = pid,
 							m_uiParam2 = gameType,
 							m_strParam = "",
-							m_uiParam3 = 0
 						};
 
 						NotificationQueue.SendNotification(Context.Handler, qclient, notification);
@@ -378,7 +370,6 @@ namespace DSFServices.Services
 							m_uiParam1 = pid,
 							m_uiParam2 = (uint)(joinSuccess ? 1 : 0),
 							m_strParam = "JoinMatchmakingStatus",
-							m_uiParam3 = 0
 						};
 
 						NotificationQueue.SendNotification(Context.Handler, qclient, notification);

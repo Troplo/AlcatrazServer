@@ -107,6 +107,50 @@ namespace QNetZ
 				&& payload[4] > 1;             // length > 1 (any real protocol name)
 		}
 
+		public static byte[] MakeRequest(string protocolName, string methodName, uint callId, byte[] parameterData, string className = null)
+		{
+			var body = new MemoryStream();
+
+			var protoBytes = Encoding.ASCII.GetBytes(protocolName + "\0");
+			Helper.WriteU16(body, (ushort)protoBytes.Length);
+			body.Write(protoBytes, 0, protoBytes.Length);
+
+			Helper.WriteU8(body, 1);
+			Helper.WriteU32(body, callId);
+
+			var methodBytes = Encoding.ASCII.GetBytes(methodName + "\0");
+			Helper.WriteU16(body, (ushort)methodBytes.Length);
+			body.Write(methodBytes, 0, methodBytes.Length);
+
+			if (parameterData != null && parameterData.Length > 0)
+			{
+				if (!string.IsNullOrEmpty(className))
+				{
+					Helper.WriteU32(body, 1); // 1 class
+					var classBytes = Encoding.ASCII.GetBytes(className + "\0");
+					Helper.WriteU16(body, (ushort)classBytes.Length);
+					body.Write(classBytes, 0, classBytes.Length);
+					Helper.WriteU16(body, 1); // Version = 1
+				}
+				else
+				{
+					Helper.WriteU32(body, 0);
+				}
+
+				body.Write(parameterData, 0, parameterData.Length);
+			}
+			else
+			{
+				Helper.WriteU32(body, 0);
+			}
+
+			var bodyBytes = body.ToArray();
+			var result = new MemoryStream();
+			Helper.WriteU32(result, (uint)bodyBytes.Length);
+			result.Write(bodyBytes, 0, bodyBytes.Length);
+			return result.ToArray();
+		}
+
 		public byte[] MakeSuccessResponse(byte[] data = null)
 		{
 			var body = new MemoryStream();

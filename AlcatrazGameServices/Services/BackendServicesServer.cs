@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using QNetZ;
 using System;
@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using DSFServices;
 
 namespace Alcatraz.GameServices.Services
 {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -50,7 +50,6 @@ namespace DSFServices.DDL.Models
 		public uint m_uiParam1 { get; set; }
 		public uint m_uiParam2 { get; set; }
 		public string m_strParam { get; set; }
-		public uint m_uiParam3 { get; set; }
 
 		public override string ToString()
 		{
@@ -65,7 +64,6 @@ namespace DSFServices.DDL.Models
 			stringBuilder.AppendLine($"    m_uiParam1 = { m_uiParam1 }");
 			stringBuilder.AppendLine($"    m_uiParam2 = { m_uiParam2 }");
 			stringBuilder.AppendLine($"    m_strParam = { m_strParam }");
-			stringBuilder.AppendLine($"    m_uiParam3 = { m_uiParam3 }");
 			stringBuilder.AppendLine("}");
 
 			return stringBuilder.ToString();

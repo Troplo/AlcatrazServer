@@ -1,3 +1,4 @@
+using QNetZ.Attributes;
 using QNetZ.DDL;
 using QNetZ.Factory;
 using QNetZ.Interfaces;
@@ -34,6 +35,7 @@ namespace QNetZ
 
 		private static void HandleQRVPacket(QPacketHandlerPRUDP handler, QClient client, QPacket p)
 		{
+			client.IsQRVClient = true;
 			var qrv = new QRVPacket(p.payload);
 
 			var clientName = client.PlayerInfo != null ? client.PlayerInfo.Name : "<unkClient>";
@@ -433,25 +435,82 @@ namespace QNetZ
 
 		public static void SendRMCCall(QPacketHandlerPRUDP handler, QClient client, RMCProtocolId protoId, uint methodId, RMCPRequest requestData)
 		{
-			var packet = new QPacket();
+			if (client.IsQRVClient)
+			{
+				string protocolName = protoId.ToString();
+				string methodName = methodId.ToString();
 
-			packet.m_oSourceVPort = new QPacket.VPort(0x31);
-			packet.m_oDestinationVPort = new QPacket.VPort(0x3f);
+				var serviceFactory = RMCServiceFactory.GetServiceFactory(protoId);
+				if (serviceFactory != null)
+				{
+					var serviceInstance = serviceFactory();
+					var serviceType = serviceInstance.GetType();
 
-			packet.type = QPacket.PACKETTYPE.DATA;
-			packet.flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_RELIABLE | QPacket.PACKETFLAG.FLAG_NEED_ACK };
-			packet.payload = new byte[0];
-			packet.m_bySessionID = client.SessionID;
+					var attr = serviceType.GetCustomAttribute<RMCServiceAttribute>();
+					if (attr != null && !string.IsNullOrEmpty(attr.Name))
+						protocolName = attr.Name;
+
+					var method = RMCServiceFactory.GetServiceMethodById(serviceType, methodId);
+					if (method != null)
+					{
+						var methodAttr = method.GetCustomAttribute<RMCMethodAttribute>();
+						if (methodAttr != null && !string.IsNullOrEmpty(methodAttr.Name))
+							methodName = methodAttr.Name;
+					}
+				}
+
+				var packet = new QPacket();
+				packet.m_oSourceVPort = new QPacket.VPort(0x31);
+				packet.m_oDestinationVPort = new QPacket.VPort(0x3f);
+
+				packet.type = QPacket.PACKETTYPE.DATA;
+				packet.flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_RELIABLE | QPacket.PACKETFLAG.FLAG_NEED_ACK };
+				packet.payload = new byte[0];
+				packet.m_bySessionID = client.SessionID;
+
+				WriteLog(client, 2, $"Sending QRV call {protocolName}::{methodName}");
+				WriteLog(client, 4, () => "Call data : " + requestData.PayloadToString());
+
+				uint callId = ++client.CallCounterRMC;
+				var paramBytes = requestData.ToBuffer();
+				
+				string className = null;
+				var requestDataType = requestData.GetType();
+				if (requestDataType.IsGenericType && requestDataType.GetGenericTypeDefinition() == typeof(RMCPRequestDDL<>))
+				{
+					className = requestDataType.GetGenericArguments()[0].Name;
+				}
+
+				var qrvBytes = QRVPacket.MakeRequest(protocolName, protocolName + "::" + methodName, callId, paramBytes, className);
+
+				QPacket np = new QPacket(packet.toBuffer());
+				np.flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_RELIABLE | QPacket.PACKETFLAG.FLAG_NEED_ACK };
+				np.m_uiSignature = client.IDsend;
+				np.usesCompression = true;
+
+				handler.MakeAndSend(client, packet, np, qrvBytes);
+				return;
+			}
+
+			var rmcPacket = new QPacket();
+
+			rmcPacket.m_oSourceVPort = new QPacket.VPort(0x31);
+			rmcPacket.m_oDestinationVPort = new QPacket.VPort(0x3f);
+
+			rmcPacket.type = QPacket.PACKETTYPE.DATA;
+			rmcPacket.flags = new List<QPacket.PACKETFLAG>() { QPacket.PACKETFLAG.FLAG_RELIABLE | QPacket.PACKETFLAG.FLAG_NEED_ACK };
+			rmcPacket.payload = new byte[0];
+			rmcPacket.m_bySessionID = client.SessionID;
 
 			var rmc = new RMCPacket();
 
 			rmc.proto = protoId;
 			rmc.methodID = methodId;
 
-			WriteLog(client, 2, $"Sending call { protoId }.{ methodId }");
+			WriteLog(client, 2, $"Sending call {protoId}.{methodId}");
 			WriteLog(client, 4, () => "Call data : " + requestData.PayloadToString());
 
-			SendRequestPacket(handler, packet, rmc, client, requestData, true, 0);
+			SendRequestPacket(handler, rmcPacket, rmc, client, requestData, true, 0);
 		}
 
 		private static void SendResponsePacket(QPacketHandlerPRUDP handler, QPacket p, RMCPacket rmc, QClient client, RMCPResponse reply, bool useCompression, uint error)

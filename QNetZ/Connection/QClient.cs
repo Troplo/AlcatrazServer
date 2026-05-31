@@ -1,4 +1,4 @@
-﻿using QNetZ.DDL;
+using QNetZ.DDL;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -40,6 +40,7 @@ namespace QNetZ
 		public uint CallCounterRMC;
 
 		public PlayerInfo PlayerInfo;      // unique player info instance
+		public bool IsQRVClient;           // whether this client uses the QRV string-based format
 
 		public double TimeSinceLastPacket
 		{

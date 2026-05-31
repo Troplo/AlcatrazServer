@@ -1,4 +1,4 @@
-﻿using DSFServices;
+using DSFServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using QNetZ;
@@ -36,6 +36,11 @@ namespace Alcatraz.GameServices.Services
 						_logger.LogInformation(s);
 				}
 			};
+		}
+
+		protected override void Update()
+		{
+			NotificationQueue.Update(packetHandler);
 		}
 	}
 }

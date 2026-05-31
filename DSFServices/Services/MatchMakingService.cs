@@ -1,4 +1,5 @@
-﻿using DSFServices.DDL.Models;
+using System;
+using DSFServices.DDL.Models;
 using QNetZ;
 using QNetZ.Attributes;
 using QNetZ.DDL;
@@ -6,6 +7,8 @@ using QNetZ.Interfaces;
 using QNetZ.Connection;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace DSFServices.Services
 {
@@ -19,11 +22,47 @@ namespace DSFServices.Services
 		static uint GatheringIdCounter = 39000;
 		static List<SentInvitation> InvitationList = new List<SentInvitation>();
 
-		[RMCMethod(0, "SetPlayerAvailableForMatchMaking_V5")]
-		public RMCResult SetPlayerAvailableForMatchMaking()
+		[RMCMethod(0, "SendQoSResult_V1")]
+		public RMCResult SendQoSResult()
 		{
+			return Error(0);
+		}
+		
+		[RMCMethod(0, "CancelMatchmakingRequest_V1")]
+		public RMCResult CancelMatchmakingRequest()
+		{
+			return Error(0);
+		}
+		
+		[RMCMethod(0, "SetPlayerAvailableForMatchMaking_V5")]
+		public RMCResult SetPlayerAvailableForMatchMaking(string playerInfoStr)
+		{
+			var playerInfo = JsonConvert.DeserializeObject<PlayerSuggestionData>(playerInfoStr);
 			var plInfo = Context.Client.PlayerInfo;
-			QLog.WriteLine(1, $"Player {plInfo.PID} is now available for matchmaking");
+			QLog.WriteLine(1, $"Player {plInfo.PID} is now available for matchmaking, info: {playerInfoStr}");
+			Random rand = new Random();
+			int id = rand.Next(999999);
+			var qos = new NotificationEvent()
+			{
+				m_pidSource = 0,
+				m_uiType = 0,
+				m_uiParam1 = 0,
+				m_uiParam2 = 0x00020000,
+				m_strParam = "{\"code\": 1, \"params\": {\"json_result\": \"{\\\"qos_target\\\": \\\"prudps:/address=192.168.1.191;port=9000#PeerGUID=01F3687F0000000000,\\\", \\\"qos_id\\\": 55210, \\\"qos_target_profile_id\\\": \\\"75461ec3-1063-49f0-aeae-575d2ee284fb,\\\", \\\"qos_target_2\\\": \\\"prudps:/address=192.168.0.12;port=9000;type=2#DNat=v(0)wk(m)ft(ead)mt(ei);PeerGUID=01F3687F0000000000;PunchGUID=0000.0000.0001.E229-FB51FD60:E229,\\\", \\\"request_id\\\": " + id + "}\"}, \"facility\": \"ServerMatchMaking\"}"
+			};
+			var notification = new NotificationEvent()
+			{
+				m_pidSource = 0,
+				m_uiType = 0,
+				m_uiParam1 = 0,
+				m_uiParam2 = 0x00020000,
+				m_strParam = "{\"code\": 0, \"params\": {\"json_result\": \"{\\\"mission_id\\\": 3, \\\"bounty_level\\\": 1, \\\"xp\\\": 18660, \\\"host_request_id\\\": " + id + ", \\\"assignation_id\\\":" + id +", \\\"sub_mission_id\\\": 8, \\\"session_id\\\": \\\"310467520\\\", \\\"host_profile_id\\\": \\\"75461ec3-1063-49f0-aeae-575d2ee284fb\\\", \\\"notoriety\\\": 200, \\\"role\\\": 1, \\\"request_id\\\": " + id + ", \\\"group_id\\\": 250231, \\\"hack_defense\\\": 0}\"}, \"facility\": \"ServerMatchMaking\"}"
+			};
+
+			NotificationQueue.AddNotification(qos, plInfo.Client, 4500);
+			NotificationQueue.AddNotification(notification, plInfo.Client, 5000);
+			// NotificationQueue.SendNotification(Context.Handler, plInfo.Client, notification);
+			// RMC.SendRequestPacket(Context.Handler, packet, Context.RMC, Context.Client, Context.RMC.request, true, 0);
 			return Result(new { retVal = true });
 		}
 		
@@ -143,8 +182,7 @@ namespace DSFServices.Services
 							m_pidSource = plInfo.PID,
 							m_uiParam1 = idGathering,
 							m_uiParam2 = plInfo.PID,
-							m_strParam = strMessage,
-							m_uiParam3 = 0
+							m_strParam = strMessage
 						};
 
 						NotificationQueue.SendNotification(Context.Handler, qclient, senderNotification);
@@ -194,8 +232,7 @@ namespace DSFServices.Services
 						m_pidSource = plInfo.PID,
 						m_uiParam1 = idGathering,
 						m_uiParam2 = plInfo.PID,
-						m_strParam = strMessage,
-						m_uiParam3 = 0
+						m_strParam = strMessage
 					};
 
 					NotificationQueue.SendNotification(Context.Handler, qsender, senderNotification);
@@ -216,8 +253,7 @@ namespace DSFServices.Services
 							m_pidSource = plInfo.PID,
 							m_uiParam1 = idGathering,
 							m_uiParam2 = plInfo.PID,
-							m_strParam = strMessage,
-							m_uiParam3 = 0
+							m_strParam = strMessage
 						};
 
 						NotificationQueue.SendNotification(Context.Handler, qclient, notification);
@@ -268,8 +304,7 @@ namespace DSFServices.Services
 					m_pidSource = plInfo.PID,
 					m_uiParam1 = idGathering,
 					m_uiParam2 = plInfo.PID,
-					m_strParam = strMessage,
-					m_uiParam3 = 0
+					m_strParam = strMessage
 				};
 
 				NotificationQueue.SendNotification(Context.Handler, qsender, senderNotification);
@@ -368,8 +403,7 @@ namespace DSFServices.Services
 							m_pidSource = plInfo.PID,
 							m_uiParam1 = idGathering,
 							m_uiParam2 = plInfo.PID,
-							m_strParam = strMessage,
-							m_uiParam3 = 0
+							m_strParam = strMessage
 						};
 
 						NotificationQueue.SendNotification(Context.Handler, qclient, leaveNotification);

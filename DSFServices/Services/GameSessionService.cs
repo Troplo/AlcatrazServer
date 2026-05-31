@@ -200,7 +200,6 @@ namespace DSFServices.Services
 							m_uiParam1 = playerInfo.PID,
 							m_uiParam2 = session.Id,
 							m_strParam = "",
-							m_uiParam3 = session.TypeID
 						};
 
 						NotificationQueue.SendNotification(Context.Handler, qclient, leaveNotification);
