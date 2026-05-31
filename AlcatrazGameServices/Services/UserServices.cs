@@ -23,6 +23,9 @@ namespace Alcatraz.GameServices.Services
 		ResultModel Register(UserRegisterModel model);
 		ResultModel Update(UserModel model);
 		ResultModel ChangePassword(Guid userId, string newPassword);
+		ResultModel ResetPassword(uint userId);
+		ResultModel Delete(uint userId);
+
 		IEnumerable<UserModel> GetAll();
 		UserModel GetById(uint id);
 		UserModel GetByIdGuid(Guid id);
@@ -87,6 +90,10 @@ namespace Alcatraz.GameServices.Services
 					Email = x.Email,
 					RewardFlags = x.RewardFlags,
 					NotorietyPoints = x.NotorietyPoints
+					CreatedTime = x.CreatedTime,
+					LastUpdateTime = x.LastUpdateTime,
+					LastPlayTime = x.LastPlayTime,
+					IsAdmin = x.IsAdmin
 				}).ToArray();
 		}
 		
@@ -102,6 +109,10 @@ namespace Alcatraz.GameServices.Services
 					Email = x.Email,
 					RewardFlags = x.RewardFlags,
 					NotorietyPoints = x.NotorietyPoints
+					CreatedTime = x.CreatedTime,
+					LastUpdateTime = x.LastUpdateTime,
+					LastPlayTime = x.LastPlayTime,
+					IsAdmin = x.IsAdmin
 				})
 				.FirstOrDefault(x => x.Id == id);
 		}
@@ -146,11 +157,14 @@ namespace Alcatraz.GameServices.Services
 				Email = model.Email,
 				PlayerNickName = model.PlayerNickName,
 				Password = "tmp",
+				CreatedTime = DateTime.Now,
+				LastUpdateTime = DateTime.MinValue,
+				LastPlayTime = DateTime.MinValue
 			};
 
 			if(!_dbContext.Users.Any())
 			{
-				// Add dummy user with starting ID == 1000
+				// Add ADMIN user with starting ID == 1000
 				_dbContext.Users.Add(new User()
 				{
 					Id = 1000,
@@ -216,6 +230,7 @@ namespace Alcatraz.GameServices.Services
 			try
 			{
 				user.Email = model.Email;
+				user.LastUpdateTime = DateTime.Now;
 				user.PlayerNickName = model.PlayerNickName;
 
 				_dbContext.SaveChanges();
@@ -229,6 +244,34 @@ namespace Alcatraz.GameServices.Services
 		}
 
 		public ResultModel ChangePassword(Guid userId, string newPassword)
+		public ResultModel Delete(uint userId)
+		{
+			var user = GetByIdInternal(userId);
+			if (user == null)
+				return new ResultModel("Invalid user");
+			if(user.IsAdmin)
+			{
+				if(_dbContext.Users.Count(x => x.IsAdmin) <= 1)
+					return new ResultModel("Cannot delete last user with Admin rights");
+			}
+
+			// delete player statistics entirely
+			foreach(var board in _dbContext.PlayerStatisticBoards.Where(x => x.PlayerId == userId))
+			{
+				uint boardId = board.Id;
+
+				_dbContext.Entry(board).State = EntityState.Deleted;
+				foreach (var boardValue in _dbContext.PlayerStatisticBoardValues.Where(x => x.PlayerBoardId == boardId))
+					_dbContext.Entry(boardValue).State = EntityState.Deleted;
+			}
+
+			_dbContext.Entry(user).State = EntityState.Deleted;
+			_dbContext.SaveChanges();
+
+			return new ResultModel();
+		}
+
+		public ResultModel ChangePassword(Guid userId, string newPassword)
 		{
 			var user = GetByIdInternal(userId);
 
@@ -237,12 +280,34 @@ namespace Alcatraz.GameServices.Services
 
 			try
 			{
+				user.LastUpdateTime = DateTime.Now;
 				user.Password = SecurePasswordHasher.Hash($"{user.Id}-{newPassword}");
 				_dbContext.SaveChanges();
 			}
 			catch
 			{
 				return new ResultModel(TNTMPErrorCode.SERVER_InternalServerError, "Unable to update user (internal error)");
+			}
+
+			return new ResultModel();
+		}
+
+		public ResultModel ResetPassword(uint userId)
+		{
+			var user = GetByIdInternal(userId);
+
+			if (user == null)
+				return new ResultModel("User with that Id was not found");
+
+			try
+			{
+				user.LastUpdateTime = DateTime.Now;
+				user.Password = SecurePasswordHasher.Hash($"{user.Id}-{_appSettings.DefaultResetPassword}");
+				_dbContext.SaveChanges();
+			}
+			catch
+			{
+				return new ResultModel("Unable to update user (internal error)");
 			}
 
 			return new ResultModel();
@@ -272,6 +337,8 @@ namespace Alcatraz.GameServices.Services
 			return new[] {
 				new Claim("uid", user.Id.ToString()),
 				new Claim(ClaimTypes.Name, user.Email),
+				new Claim(ClaimTypes.Role, user.IsAdmin ? "admin" : "user"),
+				new Claim(ClaimTypes.Name, user.Username),
 			};
 		}
 

@@ -1,18 +1,14 @@
 using Alcatraz.Context;
 using Alcatraz.GameServices.Helpers;
 using Alcatraz.GameServices.Services;
-using DSFServices;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using QNetZ;
 
 namespace Alcatraz.GameServices
@@ -39,6 +35,7 @@ namespace Alcatraz.GameServices
 				options.Filters.Add<ApiResponseWrapperFilter>();
 			});
 			services.AddScoped<UbiservicesTokenFilter>();
+
 			services.AddCors();
 
 			services.AddOptions<Microsoft.AspNetCore.Mvc.JsonOptions>()
@@ -74,9 +71,9 @@ namespace Alcatraz.GameServices
 					};
 					options.Cookie.Name = "AuthToken";
 				});
-
-			services.AddSwaggerGen();
-
+#if DEBUG
+            services.AddSwaggerGen();
+#endif
 			// register user service
 			services.AddScoped<IUserService, UserService>();
 
@@ -84,7 +81,8 @@ namespace Alcatraz.GameServices
 			services.AddSingleton<IHostedService, BackendServicesServer>();
 			services.AddSingleton<IHostedService, RendezVousServer>();
 
-			services.AddDbContext<MainDbContext>(opt =>
+            var secOpts = Configuration.GetSection("Services").Get<QConfiguration>();
+            services.AddDbContext<MainDbContext>(opt =>
 			{
 				MainDbContext.OnContextBuilding(opt, (DBType)secOpts.DbType, secOpts.DbConnectionString);
 			});
@@ -111,18 +109,6 @@ namespace Alcatraz.GameServices
 			}
 
 			app.UseMiddleware<ApiExceptionMiddleware>();
-
-			// Enable middleware to serve generated Swagger as a JSON endpoint.
-			app.UseSwagger();
-
-			// Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
-			// specifying the Swagger JSON endpoint.
-			app.UseSwaggerUI(c =>
-			{
-				c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-			});
-
-
 			app.UseRouting();
 			app.UseMiddleware<ApiVersionMiddleware>();
 

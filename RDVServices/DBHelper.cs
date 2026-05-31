@@ -2,6 +2,7 @@ using Alcatraz.Context;
 using Alcatraz.Context.Entities;
 using Microsoft.EntityFrameworkCore;
 using QNetZ;
+using System;
 using System.Linq;
 
 namespace RDVServices
@@ -50,5 +51,11 @@ namespace RDVServices
 					.SingleOrDefault(x => x.Guid.ToString() == guid);
 			}
 		}
-	}
+
+		internal static void UpdateUserPlayTime(User user)
+		{
+			user.LastPlayTime = DateTime.Now;
+			GetDbContext().SaveChanges();
+		}
+    }
 }
