@@ -89,5 +89,6 @@ namespace DSFServices
 
 		public int TotalParticipantCount { get => Participants.Count + PublicParticipants.Count; }
 		public uint[] AllParticipants { get => Participants.Concat(PublicParticipants).ToArray(); }
+		public GameMode GameMode { get; set; }
 	}
 }

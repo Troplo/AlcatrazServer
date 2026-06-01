@@ -23,11 +23,37 @@ namespace DSFServices.Services
 		static List<SentInvitation> InvitationList = new List<SentInvitation>();
 
 		[RMCMethod(0, "SendQoSResult_V1")]
-		public RMCResult SendQoSResult()
+		public RMCResult SendQoSResult(QoSResult result)
 		{
+			QLog.WriteLine(1, $"MatchMakingService.SendQoSResult_V1 - m_qosId: {result?.m_qosId}, m_qosResult: {result?.m_qosResult}, nTargets: {result?.nTargets}");
+			
+			if (result != null && result.m_qosResult >= 0)
+			{
+				MatchMakingManager.OnQoSResult(result.m_qosId, result.m_qosResult);
+			}
+			else if (result != null)
+			{
+				// If we receive a failure code, maybe we should also let it know, but for now just log it
+				QLog.WriteLine(1, $"MatchMakingService.SendQoSResult_V1 - QoS Failed or different result code.");
+			}
+			
 			return Error(0);
 		}
 		
+		[RMCMethod(0, "DenyMatchMakingProposition_V3")]
+		public RMCResult DenyMatchMakingProposition()
+		{
+			QLog.WriteLine(1, "MatchMakingService.DenyMatchMakingProposition_V3 called.");
+			return Error(0);
+		}
+
+		[RMCMethod(0, "AcceptMatchMakingProposition_V1")]
+		public RMCResult AcceptMatchMakingProposition()
+		{
+			QLog.WriteLine(1, "MatchMakingService.AcceptMatchMakingProposition_V1 called.");
+			return Error(0);
+		}
+
 		[RMCMethod(0, "CancelMatchmakingRequest_V1")]
 		public RMCResult CancelMatchmakingRequest()
 		{
@@ -56,7 +82,7 @@ namespace DSFServices.Services
 
 			MatchMakingManager.CheckMatches();
 
-			return Result(new { retVal = true });
+			return Result(new { request_id = (uint)id, interval = 33u });
 		}
 		
 		[RMCMethod(1)]

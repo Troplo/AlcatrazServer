@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using RDVServices;
 
 namespace DSFServices.Services
 {
@@ -41,13 +42,10 @@ namespace DSFServices.Services
 			if (!newSession.Attributes.TryGetValue((uint)GameSessionAttributeType.PrivateSlots, out temp))
 				newSession.Attributes[(uint)GameSessionAttributeType.PrivateSlots] = 8;
 
-			if (!newSession.Attributes.TryGetValue((uint)GameSessionAttributeType.GameType, out temp))
-				newSession.Attributes[(uint)GameSessionAttributeType.GameType] = (uint)GameType.FreeForAll;
-
 			newSession.Attributes[(uint)GameSessionAttributeType.FilledPublicSlots] = (uint)newSession.PublicParticipants.Count;
 			newSession.Attributes[(uint)GameSessionAttributeType.FilledPrivateSlots] = (uint)newSession.Participants.Count;
 
-			// TODO: give names to attributes
+			// these get populated in UpdateSession
 			if (!newSession.Attributes.TryGetValue(100, out temp))
 				newSession.Attributes[100] = 0;
 
@@ -232,7 +230,7 @@ namespace DSFServices.Services
 
 				searchResult = new GameSessionSearchResult()
 				{
-					m_hostPID = qUUID.FromPID(session.HostPID),
+					m_hostPID = new qUUID(DBHelper.GetUserByPID(session.HostPID).Guid.ToByteArray()),
 					m_hostURLs = hostPlayer?.PlayerURLs ?? new List<StationURL>(),
 					m_attributes = session.Attributes.Select(x => new GameSessionProperty { ID = x.Key, Value = x.Value }).ToArray(),
 					m_sessionKey = new GameSessionKey()
@@ -284,7 +282,7 @@ namespace DSFServices.Services
 
 					resultList.Add(new GameSessionSearchResult()
 					{
-						m_hostPID = qUUID.FromPID(ses.HostPID),
+						m_hostPID = new qUUID(DBHelper.GetUserByPID(hostPlayer.PID).Guid.ToByteArray()),
 						m_hostURLs = hostPlayer?.PlayerURLs ?? new List<StationURL>(),
 						m_attributes = ses.Attributes.Select(x => new GameSessionProperty { ID = x.Key, Value = x.Value }).ToArray(),
 						m_sessionKey = new GameSessionKey()
@@ -301,14 +299,17 @@ namespace DSFServices.Services
 
 
 		[RMCMethod(8, "AddParticipants_V1")]
-		public RMCResult AddParticipants(GameSessionKey gameSessionKey, IEnumerable<uint> publicParticipantIDs, IEnumerable<uint> privateParticipantIDs)
+		public RMCResult AddParticipants(GameSessionKey gameSessionKey, IEnumerable<qUUID> publicParticipantIDs, IEnumerable<qUUID> privateParticipantIDs)
 		{
 			var session = GameSessions.SessionList.FirstOrDefault(x => x.IsMatchingKey(gameSessionKey));
 
 			if(session != null)
 			{
-				foreach (var pid in publicParticipantIDs)
+				foreach (var quuid in publicParticipantIDs)
 				{
+					var pid = DBHelper.GetUserByGuid(quuid.ToString())?.Id ?? 0;
+					if (pid == 0) continue;
+
 					session.PublicParticipants.Add(pid);
 
 					var player = NetworkPlayers.GetPlayerInfoByPID(pid);
@@ -318,8 +319,11 @@ namespace DSFServices.Services
 					}
 				}
 
-				foreach (var pid in privateParticipantIDs)
+				foreach (var quuid in privateParticipantIDs)
 				{
+					var pid = DBHelper.GetUserByGuid(quuid.ToString())?.Id ?? 0;
+					if (pid == 0) continue;
+
 					session.Participants.Add(pid);
 
 					var player = NetworkPlayers.GetPlayerInfoByPID(pid);
@@ -331,6 +335,12 @@ namespace DSFServices.Services
 
 				session.Attributes[(uint)GameSessionAttributeType.FilledPublicSlots] = (uint)session.PublicParticipants.Count;
 				session.Attributes[(uint)GameSessionAttributeType.FilledPrivateSlots] = (uint)session.Participants.Count;
+
+				var hostPlayerInfo = NetworkPlayers.GetPlayerInfoByPID(session.HostPID);
+				if (hostPlayerInfo != null)
+				{
+					MatchMakingManager.OnHostCreatedSession(hostPlayerInfo.Client, session.Id);
+				}
 			}
 			else
 			{

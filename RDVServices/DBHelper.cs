@@ -1,4 +1,4 @@
-﻿using Alcatraz.Context;
+using Alcatraz.Context;
 using Alcatraz.Context.Entities;
 using Microsoft.EntityFrameworkCore;
 using QNetZ;
@@ -37,6 +37,17 @@ namespace RDVServices
 				return context.Users
 					.AsNoTracking()
 					.SingleOrDefault(x => x.Id == PID);
+			}
+		}
+
+		public static User GetUserByGuid(string guid)
+		{
+			using (var context = GetDbContext())
+			{
+				return context.Users
+					.AsNoTracking()
+					.AsEnumerable()
+					.SingleOrDefault(x => x.Guid.ToString() == guid);
 			}
 		}
 	}

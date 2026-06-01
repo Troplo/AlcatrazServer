@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -144,12 +144,19 @@ namespace QNetZ
 			{
 				foreach (var cr in CachedResponses)
 				{
-					cr.ResponseList.RemoveAll(x =>
-						x.Packet.m_bySessionID == ackPacket.m_bySessionID &&
-						x.Packet.uiSeqId == ackPacket.uiSeqId);
+					lock (cr.ResponseList)
+					{
+						cr.ResponseList.RemoveAll(x =>
+							x.Packet.m_bySessionID == ackPacket.m_bySessionID &&
+							x.Packet.uiSeqId == ackPacket.uiSeqId);
+					}
 				}
 
-				CachedResponses.RemoveAll(x => !x.ResponseList.Any());
+				CachedResponses.RemoveAll(x => 
+				{
+					lock (x.ResponseList)
+						return x.ResponseList.Count == 0;
+				});
 			}
 		}
 

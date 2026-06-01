@@ -17,26 +17,32 @@ namespace DSFServices.DDL.Models
 
 	public enum GameSessionAttributeType : uint
 	{
+		HostPid = 1,
+		SessionId = 2,
 		PublicSlots = 3,
 		PrivateSlots = 4,
 		FilledPublicSlots = 5,
 		FilledPrivateSlots = 6,
 
-		IsPrivate = 7,			// supposed to be, not even checked yet
-
-		FreePublicSlots = 50,	// used internally by game
-		FreePrivateSlots = 51,  // used internally by game
-
-		UnknownAttribute102 = 102, // always 201313820
-		UnknownAttribute103 = 103, // always 0
-		HostRVCID = 105,
-		UnknownAttribute106 = 106, // totally unknown, different values - qm=4 ffa=4 race=1 takedown=4 ffa=0 team=0 sr=0 tr=4
-		UnknownAttribute107 = 107, // always 3
-		UnknownAttribute108 = 108, // always 0
-		GameType = 109,
-		GameTypeMin = 110,
-		GameTypeMax = 111,
-		UnknownAttribute112 = 112, // always 1
+		Hidden = 7,			// IsPrivate, supposed to be, not even checked yet
+		HostCid = 8,
+		PublicSlotsFull = 9,
+		PrivateSlotsFull = 10,
+		FreePublicSlots = 50,	// used internally by game, UNUSED WD
+		FreePrivateSlots = 51,  // used internally by game, UNUSED WD
+		MatchKey = 100,
+		UsedForPortal = 101, // Invasion
+		GameVersion = 102,
+		GameMode = 103, // always 0
+		PartyFlags = 104
+		// HostRVCID = 105,
+		// UnknownAttribute106 = 106, // totally unknown, different values - qm=4 ffa=4 race=1 takedown=4 ffa=0 team=0 sr=0 tr=4
+		// UnknownAttribute107 = 107, // always 3
+		// UnknownAttribute108 = 108, // always 0
+		// GameType = 109,
+		// GameTypeMin = 110,
+		// GameTypeMax = 111,
+		// UnknownAttribute112 = 112, // always 1
 
 		// TODO: other parameters
 

@@ -1,4 +1,5 @@
-﻿using DSFServices.DDL.Models;
+using System;
+using DSFServices.DDL.Models;
 using QNetZ;
 using QNetZ.Attributes;
 using QNetZ.DDL;
@@ -17,12 +18,72 @@ namespace DSFServices.Services
 		static List<SentInvitation> InvitationList = new List<SentInvitation>();
 
 		[RMCMethod(0, "SetPlayerOpenForSuggestions_V6")]
-		public RMCResult SetPlayerAvailableForMatchMaking(bool isOpen, string playerInfoStr, uint arg3, uint arg4, uint arg5)
+		public RMCResult SetPlayerOpenForSuggestions(bool isOpen, string playerInfoStr, uint arg3, uint arg4, uint arg5)
 		{
 			var playerInfo = JsonConvert.DeserializeObject<PlayerSuggestionDataPortals>(playerInfoStr);
 			var plInfo = Context.Client.PlayerInfo;
 			QLog.WriteLine(1, $"Player {plInfo.PID} is now available for invasion, {isOpen}, {playerInfoStr}, {arg3}, {arg4}, {arg5}");
-			return Result(new { retVal = true });
+
+			if (isOpen)
+			{
+				Random rand = new Random();
+				int id = rand.Next(100000, 999999);
+
+				// Create the host session for the portal game mode
+				var newSession = new GameSessionData();
+				newSession.Id = (uint)id; 
+				newSession.HostPID = plInfo.PID;
+				newSession.TypeID = 1; // Default
+				newSession.GameMode = GameMode.MPHacking;
+
+				newSession.Attributes[(uint)GameSessionAttributeType.PublicSlots] = 8;
+				newSession.Attributes[(uint)GameSessionAttributeType.PrivateSlots] = 8;
+				newSession.Attributes[(uint)GameSessionAttributeType.FilledPublicSlots] = 1;
+				newSession.Attributes[(uint)GameSessionAttributeType.FilledPrivateSlots] = 0;
+				newSession.Attributes[(uint)GameSessionAttributeType.GameMode] = (uint)GameMode.MPHacking;
+
+				newSession.PublicParticipants.Add(plInfo.PID);
+				GameSessions.SessionList.Add(newSession);
+
+				plInfo.GameData().CurrentSession = new GameSessionKey { m_sessionID = newSession.Id, m_typeID = newSession.TypeID };
+
+				// MatchMakingManager.MatchmakingQueue.Add(new MatchMakingRequest()
+				// {
+				// 	PID = plInfo.PID,
+				// 	Client = plInfo.Client,
+				// 	Data = new PlayerSuggestionData()
+				// 	{
+				// 		game_mode = (int)GameMode.Portal,
+				// 		mission_id = 3,
+				// 		sub_mission_id = 8,
+				// 		nat_type = playerInfo.nat_type,
+				// 		roles_bitmask = playerInfo.roles_bitmask,
+				// 		game_version = playerInfo.game_version,
+				// 		notoriety = playerInfo.notoriety,
+				// 		origin = playerInfo.origin,
+				// 		xp = playerInfo.xp,
+				// 		hack_defense = playerInfo.hack_defense,
+				// 		time_available = playerInfo.time_available
+				// 	},
+				// 	RequestId = id
+				// });
+
+				// MatchMakingManager.CheckMatches();
+				return Result(new { request_id = (uint)id, interval = 33u });
+			}
+			else
+			{
+				// MatchMakingManager.MatchmakingQueue.RemoveAll(x => x.PID == plInfo.PID && x.Data.game_mode == (int)GameMode.Portal);
+
+				var session = GameSessions.SessionList.FirstOrDefault(x => x.HostPID == plInfo.PID && x.GameMode == GameMode.MPHacking);
+				if (session != null)
+				{
+					GameSessions.SessionList.Remove(session);
+					plInfo.GameData().CurrentSession = null;
+				}
+
+				return Result(new { request_id = 0u, interval = 33u });
+			}
 		}
 	}
 }
