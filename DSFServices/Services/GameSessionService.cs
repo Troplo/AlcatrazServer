@@ -60,10 +60,11 @@ namespace DSFServices.Services
 			if (!newSession.Attributes.TryGetValue(113, out temp))
 				newSession.Attributes[113] = 0;
 
-			// return key
 			var result = new GameSessionKey();
 			result.m_sessionID = newSession.Id;
 			result.m_typeID = newSession.TypeID;
+
+			MatchMakingManager.CheckMatches();
 
 			return Result(result);
 		}
@@ -490,6 +491,8 @@ namespace DSFServices.Services
 			}
 
 			QLog.WriteLine(1, $"Session hosted by pid={myPlayerId}. Session={session?.Id}, URLs: {string.Join(", ", stationURLs.Select(x => x.ToString()))}");
+
+			MatchMakingManager.CheckMatches();
 
 			return Result(new { retVal = true });
 		}

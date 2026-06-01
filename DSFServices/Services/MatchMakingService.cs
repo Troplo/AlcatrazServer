@@ -31,6 +31,8 @@ namespace DSFServices.Services
 		[RMCMethod(0, "CancelMatchmakingRequest_V1")]
 		public RMCResult CancelMatchmakingRequest()
 		{
+			var plInfo = Context.Client.PlayerInfo;
+			MatchMakingManager.MatchmakingQueue.RemoveAll(x => x.PID == plInfo.PID);
 			return Error(0);
 		}
 		
@@ -40,29 +42,20 @@ namespace DSFServices.Services
 			var playerInfo = JsonConvert.DeserializeObject<PlayerSuggestionData>(playerInfoStr);
 			var plInfo = Context.Client.PlayerInfo;
 			QLog.WriteLine(1, $"Player {plInfo.PID} is now available for matchmaking, info: {playerInfoStr}");
+			
 			Random rand = new Random();
 			int id = rand.Next(999999);
-			var qos = new NotificationEvent()
-			{
-				m_pidSource = 0,
-				m_uiType = 0,
-				m_uiParam1 = 0,
-				m_uiParam2 = 0x00020000,
-				m_strParam = "{\"code\": 1, \"params\": {\"json_result\": \"{\\\"qos_target\\\": \\\"prudps:/address=192.168.1.191;port=9000#PeerGUID=01F3687F0000000000,\\\", \\\"qos_id\\\": 55210, \\\"qos_target_profile_id\\\": \\\"75461ec3-1063-49f0-aeae-575d2ee284fb,\\\", \\\"qos_target_2\\\": \\\"prudps:/address=192.168.0.12;port=9000;type=2#DNat=v(0)wk(m)ft(ead)mt(ei);PeerGUID=01F3687F0000000000;PunchGUID=0000.0000.0001.E229-FB51FD60:E229,\\\", \\\"request_id\\\": " + id + "}\"}, \"facility\": \"ServerMatchMaking\"}"
-			};
-			var notification = new NotificationEvent()
-			{
-				m_pidSource = 0,
-				m_uiType = 0,
-				m_uiParam1 = 0,
-				m_uiParam2 = 0x00020000,
-				m_strParam = "{\"code\": 0, \"params\": {\"json_result\": \"{\\\"mission_id\\\": 3, \\\"bounty_level\\\": 1, \\\"xp\\\": 18660, \\\"host_request_id\\\": " + id + ", \\\"assignation_id\\\":" + id +", \\\"sub_mission_id\\\": 8, \\\"session_id\\\": \\\"310467520\\\", \\\"host_profile_id\\\": \\\"75461ec3-1063-49f0-aeae-575d2ee284fb\\\", \\\"notoriety\\\": 200, \\\"role\\\": 1, \\\"request_id\\\": " + id + ", \\\"group_id\\\": 250231, \\\"hack_defense\\\": 0}\"}, \"facility\": \"ServerMatchMaking\"}"
-			};
 
-			NotificationQueue.AddNotification(qos, plInfo.Client, 4500);
-			NotificationQueue.AddNotification(notification, plInfo.Client, 5000);
-			// NotificationQueue.SendNotification(Context.Handler, plInfo.Client, notification);
-			// RMC.SendRequestPacket(Context.Handler, packet, Context.RMC, Context.Client, Context.RMC.request, true, 0);
+			MatchMakingManager.MatchmakingQueue.Add(new MatchMakingRequest()
+			{
+				PID = plInfo.PID,
+				Client = plInfo.Client,
+				Data = playerInfo,
+				RequestId = id
+			});
+
+			MatchMakingManager.CheckMatches();
+
 			return Result(new { retVal = true });
 		}
 		

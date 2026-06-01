@@ -17,11 +17,11 @@ namespace DSFServices.Services
 		static List<SentInvitation> InvitationList = new List<SentInvitation>();
 
 		[RMCMethod(0, "SetPlayerOpenForSuggestions_V6")]
-		public RMCResult SetPlayerAvailableForMatchMaking(string playerInfoStr)
+		public RMCResult SetPlayerAvailableForMatchMaking(bool isOpen, string playerInfoStr, uint arg3, uint arg4, uint arg5)
 		{
 			var playerInfo = JsonConvert.DeserializeObject<PlayerSuggestionDataPortals>(playerInfoStr);
 			var plInfo = Context.Client.PlayerInfo;
-			QLog.WriteLine(1, $"Player {plInfo.PID} is now available for invasion, {playerInfoStr}");
+			QLog.WriteLine(1, $"Player {plInfo.PID} is now available for invasion, {isOpen}, {playerInfoStr}, {arg3}, {arg4}, {arg5}");
 			return Result(new { retVal = true });
 		}
 	}

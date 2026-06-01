@@ -11,6 +11,7 @@ public class PlayerSuggestionData
     public uint roles_bitmask { get; set; }
     public uint game_version { get; set; }
     public int notoriety { get; set; }
+    public int bounty_level { get; set; }
     public int origin { get; set; }
     public int xp { get; set; }
     public int hack_defense { get; set; }
