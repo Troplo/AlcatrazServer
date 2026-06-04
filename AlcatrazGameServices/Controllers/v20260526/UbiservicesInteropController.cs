@@ -1,3 +1,4 @@
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using Alcatraz.Context;
@@ -6,6 +7,7 @@ using Alcatraz.GameServices.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using QNetZ;
+using RDVServices;
 
 namespace Alcatraz.GameServices.Controllers.v20260526;
 
@@ -26,41 +28,68 @@ public class UbiservicesInteropController : ControllerBase
     }
 
     [HttpGet("user/get")]
-    public IActionResult GetUser([FromQuery] string ticket)
+    public IActionResult GetUser(
+        [FromQuery] string? ticket,
+        [FromQuery] Guid? guid)
     {
-        if (string.IsNullOrWhiteSpace(ticket))
+        if (string.IsNullOrWhiteSpace(ticket) && guid == null)
         {
             return BadRequest(new
             {
-                error = "Missing ticket"
+                error = "Either ticket or userId must be provided"
             });
         }
+        
+        UserModel user;
 
-        var session = _dbContext.SessionTokens
-            .FirstOrDefault(x => x.Id == ticket);
-
-        if (session == null)
+        if (!string.IsNullOrWhiteSpace(ticket))
         {
-            return Unauthorized(new
+            var session = _dbContext.SessionTokens
+                .FirstOrDefault(x => x.Id == ticket);
+
+            
+            if (session == null)
             {
-                error = "Invalid ticket"
-            });
+                return Unauthorized(new
+                {
+                    error = "Invalid ticket"
+                });
+            }
+
+            user =
+                _userService.GetById(session.UserId);
+
+            if (user == null)
+            {
+                return Unauthorized(new
+                {
+                    error = "User not found"
+                });
+            }
         }
-
-        UserModel user =
-            _userService.GetById(session.UserId);
-
-        if (user == null)
+        else if (guid != null)
         {
-            return Unauthorized(new
+            user =
+                _userService.GetByIdGuid(guid.Value);
+            
+            if (user == null)
+            {
+                return NotFound(new
+                {
+                    error = "User not found"
+                });
+            }
+        }
+        else
+        {
+            return NotFound(new
             {
                 error = "User not found"
             });
         }
-
+        
         return Ok(new
         {
-            ticket = session.Id,
             userId = user.Id,
             profileId = user.Id.ToString(),
             nameOnPlatform = user.PlayerNickName,

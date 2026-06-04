@@ -1,3 +1,4 @@
+using System;
 using DSFServices.DDL.Models;
 using QNetZ;
 using QNetZ.Attributes;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using RDVServices;
 
 namespace DSFServices.Services
@@ -28,7 +30,7 @@ namespace DSFServices.Services
 			var newSession = new GameSessionData();
 			GameSessions.SessionList.Add(newSession);
 
-			newSession.Id = ++GameSessionCounter;
+			newSession.Id = newSession.GenerateId();
 			newSession.HostPID = plInfo.PID;
 			newSession.TypeID = gameSession.m_typeID;
 
@@ -57,12 +59,14 @@ namespace DSFServices.Services
 
 			if (!newSession.Attributes.TryGetValue(113, out temp))
 				newSession.Attributes[113] = 0;
-
+			
 			for(int i = 0; i < gameSession.m_attributes.Count; i++)
 			{
 					var attr = gameSession.m_attributes.ElementAt(i);
 					QLog.WriteLine(1, $"Session attribute {i}: ID={attr.ID} Value={attr.Value}");
 			}
+			
+			newSession.Attributes[(uint)GameSessionAttributeType.TNT_DirectJoinCode] = newSession.Id;
 			
 			var result = new GameSessionKey();
 			result.m_sessionID = newSession.Id;
@@ -85,6 +89,9 @@ namespace DSFServices.Services
 				// update or add attributes
 				foreach (var attr in gameSessionUpdate.m_attributes)
 				{
+					// Prevent a host from updating the session settings midgame
+					// if (attr.ID == (uint)GameSessionAttributeType.TNT_SessionSettings) continue;
+					if (attr.ID == (uint)GameSessionAttributeType.TNT_DirectJoinCode) continue;
 					session.Attributes[attr.ID] = attr.Value;
 					QLog.WriteLine(1, $"Updated session {session.Id} attribute {attr.ID} to value {attr.Value}");
 				}
@@ -131,7 +138,7 @@ namespace DSFServices.Services
 			var newSession = new GameSessionData();
 			GameSessions.SessionList.Add(newSession);
 
-			newSession.Id = ++GameSessionCounter;
+			newSession.Id = newSession.GenerateId();
 			newSession.HostPID =  Context.Client.PlayerInfo.PID;
 			newSession.TypeID = oldSession.TypeID;
 			newSession.Participants = oldSession.Participants;
@@ -309,6 +316,16 @@ namespace DSFServices.Services
 		public RMCResult AddParticipants(GameSessionKey gameSessionKey, IEnumerable<qUUID> publicParticipantIDs, IEnumerable<qUUID> privateParticipantIDs)
 		{
 			var session = GameSessions.SessionList.FirstOrDefault(x => x.IsMatchingKey(gameSessionKey));
+			QLog.WriteLine(1, $"AddParticipants_V1: KeySid={gameSessionKey.m_sessionID}, KeyType={gameSessionKey.m_typeID} player={Context.Client.PlayerInfo?.Name} publicCount={publicParticipantIDs?.Count() ?? 0} privateCount={privateParticipantIDs?.Count() ?? 0}");
+			for(int i = 0; i < publicParticipantIDs?.Count(); i++)
+			{
+				QLog.WriteLine(1, $"Public participant {i}: {publicParticipantIDs.ElementAt(i)}");
+			}
+
+			for (int i = 0; i < privateParticipantIDs?.Count(); i++)
+			{
+				QLog.WriteLine(1, $"Private participant {i}: {privateParticipantIDs.ElementAt(i)}");
+			}
 
 			if(session != null)
 			{
@@ -328,7 +345,8 @@ namespace DSFServices.Services
 
 				foreach (var quuid in privateParticipantIDs)
 				{
-					var pid = DBHelper.GetUserByGuid(quuid.ToString())?.Id ?? 0;
+					var pid = DBHelper.GetUserByGuid(quuid.ToString())?.Id ?? 0; 
+					QLog.WriteLine(1, $"Private participant PID: {pid}");
 					if (pid == 0) continue;
 
 					session.Participants.Add(pid);

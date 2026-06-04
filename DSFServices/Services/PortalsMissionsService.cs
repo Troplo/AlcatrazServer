@@ -29,24 +29,6 @@ namespace DSFServices.Services
 				Random rand = new Random();
 				int id = rand.Next(100000, 999999);
 
-				// Create the host session for the portal game mode
-				var newSession = new GameSessionData();
-				newSession.Id = (uint)id; 
-				newSession.HostPID = plInfo.PID;
-				newSession.TypeID = 1; // Default
-				newSession.GameMode = GameMode.MPHacking;
-
-				newSession.Attributes[(uint)GameSessionAttributeType.PublicSlots] = 8;
-				newSession.Attributes[(uint)GameSessionAttributeType.PrivateSlots] = 8;
-				newSession.Attributes[(uint)GameSessionAttributeType.FilledPublicSlots] = 1;
-				newSession.Attributes[(uint)GameSessionAttributeType.FilledPrivateSlots] = 0;
-				newSession.Attributes[(uint)GameSessionAttributeType.GameMode] = (uint)GameMode.MPHacking;
-
-				newSession.PublicParticipants.Add(plInfo.PID);
-				GameSessions.SessionList.Add(newSession);
-
-				plInfo.GameData().CurrentSession = new GameSessionKey { m_sessionID = newSession.Id, m_typeID = newSession.TypeID };
-
 				// MatchMakingManager.MatchmakingQueue.Add(new MatchMakingRequest()
 				// {
 				// 	PID = plInfo.PID,

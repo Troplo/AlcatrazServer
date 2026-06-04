@@ -1,9 +1,11 @@
+using System;
 using DSFServices.DDL.Models;
 using QNetZ;
 using QNetZ.DDL;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Security.Cryptography;
 
 namespace DSFServices
 {
@@ -27,10 +29,9 @@ namespace DSFServices
 		{
 			// delete player from old sessions
 			var participatingSessions = SessionList.Where(x =>
-				x.Participants.Contains(playerInfo.PID) &&
-				x.PublicParticipants.Contains(playerInfo.PID) &&
-				newSessionKey != null ? !x.IsMatchingKey(newSessionKey) : true
-			);
+				(x.Participants.Contains(playerInfo.PID) || x.PublicParticipants.Contains(playerInfo.PID)) &&
+				(newSessionKey != null ? !x.IsMatchingKey(newSessionKey) : true)
+			).ToList();
 
 			foreach (var session in participatingSessions)
 			{
@@ -90,5 +91,14 @@ namespace DSFServices
 		public int TotalParticipantCount { get => Participants.Count + PublicParticipants.Count; }
 		public uint[] AllParticipants { get => Participants.Concat(PublicParticipants).ToArray(); }
 		public GameMode GameMode { get; set; }
+
+		public uint GenerateId()
+		{
+			Span<byte> bytes = stackalloc byte[4];
+			RandomNumberGenerator.Fill(bytes);
+			uint randomNumber = BitConverter.ToUInt32(bytes);
+			
+			return randomNumber;
+		}
 	}
 }

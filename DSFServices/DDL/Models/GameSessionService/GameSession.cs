@@ -14,7 +14,8 @@ namespace DSFServices.DDL.Models
 		ShiftRace = 5,
 		TeamRace = 6
 	}
-
+	
+	// keep in sync with src/game/nexus/managers/MultiplayerManager.h
 	public enum GameSessionAttributeType : uint
 	{
 		HostPid = 1,
@@ -47,7 +48,9 @@ namespace DSFServices.DDL.Models
 		TNT_ModsHash = 201,
 		TNT_SessionSettings = 202,
 		TNT_PrivacyMode = 203,
-		TNT_Version = 204
+		TNT_Version = 204,
+		TNT_VersionDebug = 205,
+		TNT_DirectJoinCode = 206
 
 		// TODO: other parameters
 

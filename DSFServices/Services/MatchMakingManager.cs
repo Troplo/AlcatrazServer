@@ -42,6 +42,7 @@ namespace DSFServices.Services
 		public QClient GuestClient { get; set; }
 		public QClient HostClient { get; set; }
 		public uint QosId { get; set; }
+		public bool IsImplicitHost { get; set; }
 	}
 
 	public static class MatchMakingManager
@@ -69,7 +70,7 @@ namespace DSFServices.Services
 						if (session.HostPID == p1.PID) continue;
 
 						int sessionGameMode = -1;
-						if (session.Attributes.TryGetValue(10, out uint gmVal))
+						if (session.Attributes.TryGetValue((uint)GameSessionAttributeType.GameMode, out uint gmVal))
 						{
 							sessionGameMode = (int)gmVal;
 						}
@@ -99,7 +100,10 @@ namespace DSFServices.Services
 										: false);
 #endif
 						
-						if ((sessionGameMode == p1.Data.game_mode || (p1.Data.game_mode == (int)GameMode.MPHacking && sessionGameMode == 0 && p1.Data.allow_direct_invasion)) && tntPrecheck)
+						bool isSessionExactMatch = sessionGameMode != (int)GameMode.SinglePlayer && sessionGameMode == p1.Data.game_mode;
+						bool isSessionInvasionMatch = (p1.Data.game_mode == (int)GameMode.MPHacking || p1.Data.game_mode == (int)GameMode.MPTailing) && sessionGameMode == 0 && p1.Data.allow_direct_invasion;
+
+						if ((isSessionExactMatch || isSessionInvasionMatch) && tntPrecheck)
 						{
 							var hostInfo = NetworkPlayers.GetPlayerInfoByPID(session.HostPID);
 							if (hostInfo != null && hostInfo.PlayerURLs.Count > 0)
@@ -113,7 +117,7 @@ namespace DSFServices.Services
 									RequestId = hostRequest != null ? hostRequest.RequestId : new Random().Next(999999)
 								};
 
-								DoMatch(dummyHost, p1, session, hostInfo, NetworkPlayers.GetPlayerInfoByPID(p1.PID));
+								DoMatch(dummyHost, p1, session, hostInfo, NetworkPlayers.GetPlayerInfoByPID(p1.PID), isSessionInvasionMatch);
 								MatchmakingQueue.Remove(p1);
 								joinedExisting = true;
 								break;
@@ -130,28 +134,47 @@ namespace DSFServices.Services
 
 						QLog.WriteLine(1, "Matchmaking queue" + p1.PID + " " + p2.PID + " " + p1.Data.game_mode + " " + p2.Data.game_mode);
 						bool isExactMatch = p1.Data.game_mode != (int)GameMode.SinglePlayer && p1.Data.game_mode == p2.Data.game_mode;
-						bool isInvasionMatch = (p1.Data.game_mode == (int)GameMode.MPHacking && p2.Data.game_mode == (int)GameMode.SinglePlayer && p2.Data.allow_direct_invasion) ||
-											   (p2.Data.game_mode == (int)GameMode.MPHacking && p1.Data.game_mode == (int)GameMode.SinglePlayer && p1.Data.allow_direct_invasion);
+						bool isInvasionMatch = ((p1.Data.game_mode == (int)GameMode.MPHacking || p1.Data.game_mode == (int)GameMode.MPTailing) && p2.Data.game_mode == (int)GameMode.SinglePlayer && p2.Data.allow_direct_invasion) ||
+											   ((p2.Data.game_mode == (int)GameMode.MPHacking || p2.Data.game_mode == (int)GameMode.MPTailing) && p1.Data.game_mode == (int)GameMode.SinglePlayer && p1.Data.allow_direct_invasion);
 
 						if (isExactMatch || isInvasionMatch)
 						{
 							var p1Session = GameSessions.SessionList.FirstOrDefault(x => x.HostPID == p1.PID);
 							var p1Info = NetworkPlayers.GetPlayerInfoByPID(p1.PID);
+							var p2Session = GameSessions.SessionList.FirstOrDefault(x => x.HostPID == p2.PID);
 							var p2Info = NetworkPlayers.GetPlayerInfoByPID(p2.PID);
 
-							if (p1Info?.PlayerURLs.Count > 0)
+							if (isInvasionMatch)
 							{
-								DoMatch(p1, p2, p1Session, p1Info, p2Info);
-								MatchmakingQueue.Remove(p1);
-								MatchmakingQueue.Remove(p2);
-								break;
+								// The host MUST be the player in SinglePlayer (game_mode == 0)
+								if (p1.Data.game_mode == (int)GameMode.SinglePlayer && p1Info?.PlayerURLs.Count > 0)
+								{
+									DoMatch(p1, p2, p1Session, p1Info, p2Info, true);
+									MatchmakingQueue.Remove(p1);
+									MatchmakingQueue.Remove(p2);
+									break;
+								}
+								else if (p2.Data.game_mode == (int)GameMode.SinglePlayer && p2Info?.PlayerURLs.Count > 0)
+								{
+									DoMatch(p2, p1, p2Session, p2Info, p1Info, true);
+									MatchmakingQueue.Remove(p1);
+									MatchmakingQueue.Remove(p2);
+									break;
+								}
 							}
 							else
 							{
-								var p2Session = GameSessions.SessionList.FirstOrDefault(x => x.HostPID == p2.PID);
-								if (p2Info?.PlayerURLs.Count > 0)
+								// For exact matches, anyone can be host
+								if (p1Info?.PlayerURLs.Count > 0)
 								{
-									DoMatch(p2, p1, p2Session, p2Info, p1Info);
+									DoMatch(p1, p2, p1Session, p1Info, p2Info, false);
+									MatchmakingQueue.Remove(p1);
+									MatchmakingQueue.Remove(p2);
+									break;
+								}
+								else if (p2Info?.PlayerURLs.Count > 0)
+								{
+									DoMatch(p2, p1, p2Session, p2Info, p1Info, false);
 									MatchmakingQueue.Remove(p1);
 									MatchmakingQueue.Remove(p2);
 									break;
@@ -163,14 +186,16 @@ namespace DSFServices.Services
 			}
 		}
 
-		private static void DoMatch(MatchMakingRequest host, MatchMakingRequest guest, GameSessionData hostSession, PlayerInfo hostInfo, PlayerInfo guestInfo)
+		private static void DoMatch(MatchMakingRequest host, MatchMakingRequest guest, GameSessionData hostSession, PlayerInfo hostInfo, PlayerInfo guestInfo, bool isInvasionMatch = false)
 		{
 			QLog.WriteLine(1, $"Matchmaking: Found match! Host PID: {host.PID}, Guest PID: {guest.PID}, GameMode: {host.Data.game_mode}");
+
+			bool isImplicitHost = isInvasionMatch || hostSession == null;
 
 			if (hostSession == null)
 			{
 				hostSession = new GameSessionData();
-				hostSession.Id = (uint)new Random().Next(100000, 999999);
+				hostSession.Id = hostSession.GenerateId();
 				hostSession.HostPID = host.PID;
 				hostSession.TypeID = 1;
 				hostSession.GameMode = (GameMode)host.Data.game_mode;
@@ -211,7 +236,7 @@ namespace DSFServices.Services
 				session_id = hostSession?.Id.ToString() ?? "0",
 				host_profile_id = DBHelper.GetUserByPID(host.PID).Guid.ToString(),
 				notoriety = host.Data.notoriety,
-				role = 1,
+				role = guest.Data.game_mode == (int)GameMode.MPTailing ? 2 : 1,
 				request_id = (uint)guest.RequestId,
 				group_id = 250231,
 				hack_defense = host.Data.hack_defense
@@ -294,7 +319,8 @@ namespace DSFServices.Services
 					HostMatchResult = hostMatchResult,
 					GuestClient = guest.Client,
 					HostClient = hostInfo.Client,
-					QosId = (uint)host.RequestId
+					QosId = (uint)host.RequestId,
+					IsImplicitHost = isImplicitHost
 				});
 			}
 		}
@@ -306,28 +332,53 @@ namespace DSFServices.Services
 				var match = PendingMatches.FirstOrDefault(x => x.QosId == qosId);
 				if (match != null)
 				{
-					QLog.WriteLine(1, $"Matchmaking: Received QoS result {qosResult} for QosId {qosId}. Sending proposition to host.");
-					if (match.HostClient != null)
+					if (match.IsImplicitHost)
 					{
-						var hostMatchParam = new
+						QLog.WriteLine(1, $"Matchmaking: Received QoS result {qosResult} for QosId {qosId}. Sending proposition to host (Implicit Session).");
+						if (match.HostClient != null)
+						{
+							var hostMatchParam = new
+							{
+								code = 0,
+								@params = new { json_result = JsonConvert.SerializeObject(match.HostMatchResult) },
+								facility = "ServerMatchMaking"
+							};
+
+							var hostMatchNotification = new NotificationEvent()
+							{
+								m_pidSource = 0,
+								m_uiType = 0,
+								m_uiParam1 = 0,
+								m_uiParam2 = 0,
+								m_strParam = JsonConvert.SerializeObject(hostMatchParam)
+							};
+
+							NotificationQueue.AddNotification(hostMatchNotification, match.HostClient, 500);
+						}
+						// host will create the session and then we'll emit to client in OnHostCreatedSession
+					}
+					else
+					{
+						QLog.WriteLine(1, $"Matchmaking: Received QoS result {qosResult} for QosId {qosId}. Sending proposition to guest (Explicit Session).");
+						var matchParam = new
 						{
 							code = 0,
-							@params = new { json_result = JsonConvert.SerializeObject(match.HostMatchResult) },
+							@params = new { json_result = JsonConvert.SerializeObject(match.MatchResult) },
 							facility = "ServerMatchMaking"
 						};
 
-						var hostMatchNotification = new NotificationEvent()
+						var matchNotification = new NotificationEvent()
 						{
 							m_pidSource = 0,
 							m_uiType = 0,
 							m_uiParam1 = 0,
 							m_uiParam2 = 0,
-							m_strParam = JsonConvert.SerializeObject(hostMatchParam)
+							m_strParam = JsonConvert.SerializeObject(matchParam)
 						};
 
-						NotificationQueue.AddNotification(hostMatchNotification, match.HostClient, 500);
+						NotificationQueue.AddNotification(matchNotification, match.GuestClient, 500);
+						PendingMatches.Remove(match);
 					}
-					// host will create the session and then we'll emit to client
 				}
 				else
 				{

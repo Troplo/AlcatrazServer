@@ -38,17 +38,7 @@ namespace QNetZ.DDL
 		
 		public override string ToString()
 		{
-			return string.Format(
-				"{0:X2}{1:X2}{2:X2}{3:X2}-" +
-				"{4:X2}{5:X2}-" +
-				"{6:X2}{7:X2}-" +
-				"{8:X2}{9:X2}-" +
-				"{10:X2}{11:X2}{12:X2}{13:X2}{14:X2}{15:X2}",
-				Bytes[0], Bytes[1], Bytes[2], Bytes[3],
-				Bytes[4], Bytes[5],
-				Bytes[6], Bytes[7],
-				Bytes[8], Bytes[9],
-				Bytes[10], Bytes[11], Bytes[12], Bytes[13], Bytes[14], Bytes[15]);
+			return new Guid(Bytes).ToString();
 		}
 	}
 }
