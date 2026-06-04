@@ -34,15 +34,20 @@ namespace DSFServices.DDL.Models
 		UsedForPortal = 101, // Invasion
 		GameVersion = 102,
 		GameMode = 103, // always 0
-		PartyFlags = 104
+		PartyFlags = 104,
 		// HostRVCID = 105,
 		// UnknownAttribute106 = 106, // totally unknown, different values - qm=4 ffa=4 race=1 takedown=4 ffa=0 team=0 sr=0 tr=4
 		// UnknownAttribute107 = 107, // always 3
 		// UnknownAttribute108 = 108, // always 0
 		// GameType = 109,
-		// GameTypeMin = 110,
-		// GameTypeMax = 111,
+		GameTypeMin = 110,
+		GameTypeMax = 111,
 		// UnknownAttribute112 = 112, // always 1
+		TNT_AdvertisePublicly = 200,
+		TNT_ModsHash = 201,
+		TNT_SessionSettings = 202,
+		TNT_PrivacyMode = 203,
+		TNT_Version = 204
 
 		// TODO: other parameters
 

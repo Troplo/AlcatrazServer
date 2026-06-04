@@ -78,7 +78,28 @@ namespace DSFServices.Services
 							sessionGameMode = (int)session.GameMode;
 						}
 
-						if (sessionGameMode == p1.Data.game_mode || (p1.Data.game_mode == (int)GameMode.MPHacking && sessionGameMode == 0 && p1.Data.allow_direct_invasion))
+						uint value = 0;
+					
+#if DEBUG
+						bool tntPrecheck = true;
+#else
+						bool tntPrecheck =
+							(session.Attributes.TryGetValue((uint)GameSessionAttributeType.TNT_Version, out value)
+								?
+								value == p1.Data.tnt_version
+								: false
+								  &&
+								  session.Attributes.TryGetValue((uint)GameSessionAttributeType.TNT_ModsHash, out value)
+									? value == p1.Data.tnt_modsHash
+									: false
+									  &&
+									  session.Attributes.TryGetValue((uint)GameSessionAttributeType.TNT_SessionSettings,
+										  out value)
+										? value == p1.Data.tnt_sessionSettings
+										: false);
+#endif
+						
+						if ((sessionGameMode == p1.Data.game_mode || (p1.Data.game_mode == (int)GameMode.MPHacking && sessionGameMode == 0 && p1.Data.allow_direct_invasion)) && tntPrecheck)
 						{
 							var hostInfo = NetworkPlayers.GetPlayerInfoByPID(session.HostPID);
 							if (hostInfo != null && hostInfo.PlayerURLs.Count > 0)

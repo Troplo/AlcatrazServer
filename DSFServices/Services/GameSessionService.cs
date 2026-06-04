@@ -58,6 +58,12 @@ namespace DSFServices.Services
 			if (!newSession.Attributes.TryGetValue(113, out temp))
 				newSession.Attributes[113] = 0;
 
+			for(int i = 0; i < gameSession.m_attributes.Count; i++)
+			{
+					var attr = gameSession.m_attributes.ElementAt(i);
+					QLog.WriteLine(1, $"Session attribute {i}: ID={attr.ID} Value={attr.Value}");
+			}
+			
 			var result = new GameSessionKey();
 			result.m_sessionID = newSession.Id;
 			result.m_typeID = newSession.TypeID;
@@ -80,6 +86,7 @@ namespace DSFServices.Services
 				foreach (var attr in gameSessionUpdate.m_attributes)
 				{
 					session.Attributes[attr.ID] = attr.Value;
+					QLog.WriteLine(1, $"Updated session {session.Id} attribute {attr.ID} to value {attr.Value}");
 				}
 			}
 			else
@@ -271,7 +278,7 @@ namespace DSFServices.Services
 				var gameTypeMaxParam = m_parameters.FirstOrDefault(x => x.ID == (uint)GameSessionAttributeType.GameTypeMax);
 				var totalPublicSlotsParam = m_parameters.FirstOrDefault(x => x.ID == (uint)GameSessionAttributeType.PublicSlots);
 
-				uint sessionGameType = ses.Attributes[(uint)GameSessionAttributeType.GameType];
+				uint sessionGameType = ses.Attributes[(uint)GameSessionAttributeType.GameMode];
 
 				// check game mode matches criteria
 				// and if there are free slots

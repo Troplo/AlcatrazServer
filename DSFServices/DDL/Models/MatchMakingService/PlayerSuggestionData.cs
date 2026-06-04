@@ -32,6 +32,9 @@ public class PlayerSuggestionData
     public int hack_defense { get; set; }
     public ulong time_available { get; set; }
     public bool allow_direct_invasion { get; set; }
+    public uint tnt_modsHash { get; set; }
+    public uint tnt_version { get; set; }
+    public uint tnt_sessionSettings { get; set; }
 }
 
 //{"mission_id":4294967280,"nat_type":1,"roles_bitmask":3,"game_version":3053253107,"portals_mode":6017,"sp_act":2,"notoriety":0,"origin":10,"xp":26785,"hack_defense":100,"time_available":1914485040}
@@ -48,4 +51,7 @@ public class PlayerSuggestionDataPortals
     public int xp { get; set; }
     public int hack_defense { get; set; }
     public ulong time_available { get; set; }
+    public uint tnt_modsHash { get; set; }
+    public uint tnt_version { get; set; }
+    public uint tnt_sessionSettings { get; set; }
 }
