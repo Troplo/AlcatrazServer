@@ -17,6 +17,20 @@ public enum GameMode
 	TNTSPCoop = 10
 }
 
+[System.Flags]
+public enum UserSetting : uint
+{
+	None = 0,
+	AllowMatchingDifferentSessionSettings = 1u << 0
+}
+
+[System.Flags]
+public enum SessionSetting : uint
+{
+	None = 0,
+    AllowModsMarkedAsGraphics = 1u << 8
+}
+
 public class PlayerSuggestionData
 {
     public uint mission_id { get; set; }
@@ -34,7 +48,10 @@ public class PlayerSuggestionData
     public bool allow_direct_invasion { get; set; }
     public uint tnt_modsHash { get; set; }
     public uint tnt_version { get; set; }
-    public uint tnt_sessionSettings { get; set; }
+    public SessionSetting tnt_sessionSettings { get; set; }
+    public UserSetting tnt_userSettings { get; set; }
+    public uint tnt_modsHashStd { get; set; }
+    public uint tnt_modsHashGfx { get; set; }
 }
 
 //{"mission_id":4294967280,"nat_type":1,"roles_bitmask":3,"game_version":3053253107,"portals_mode":6017,"sp_act":2,"notoriety":0,"origin":10,"xp":26785,"hack_defense":100,"time_available":1914485040}
@@ -53,5 +70,8 @@ public class PlayerSuggestionDataPortals
     public ulong time_available { get; set; }
     public uint tnt_modsHash { get; set; }
     public uint tnt_version { get; set; }
-    public uint tnt_sessionSettings { get; set; }
+    public SessionSetting tnt_sessionSettings { get; set; }
+    public UserSetting tnt_userSettings { get; set; }
+    public uint tnt_modsHashStd { get; set; }
+    public uint tnt_modsHashGfx { get; set; }
 }

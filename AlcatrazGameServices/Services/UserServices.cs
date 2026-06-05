@@ -12,6 +12,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using QNetZ;
 
 namespace Alcatraz.GameServices.Services
 {
@@ -122,6 +123,9 @@ namespace Alcatraz.GameServices.Services
 
 		public ResultModel Register(UserRegisterModel model)
 		{
+			if(!QConfiguration.Instance.AllowRegistrations)
+				return new ResultModel("Registrations are disabled");
+			
 			if (string.IsNullOrWhiteSpace(model.Email))
 				return new ResultModel("Email is incorrect or empty");
 
@@ -160,8 +164,9 @@ namespace Alcatraz.GameServices.Services
 				_dbContext.Users.Add(newUser);
 				_dbContext.SaveChanges();
 			}
-			catch
+			catch(Exception ex)
 			{
+				QLog.WriteLine(1, ex.Message);
 				return new ResultModel("Unable to add user (internal error)");
 			}
 
@@ -171,7 +176,7 @@ namespace Alcatraz.GameServices.Services
 				_dbContext.SaveChanges();
 			}
 
-			return new ResultModel(newUser.Guid);
+			return new ResultModel(newUser.Guid, newUser.Id);
 		}
 
 		public ResultModel Update(UserModel model)

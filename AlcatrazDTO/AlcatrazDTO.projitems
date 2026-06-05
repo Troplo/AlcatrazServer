@@ -20,8 +20,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\OnlineConfigEntry.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\UserModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\UserRegisterModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\v20260526\AuthRequest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\v20260526\LegalResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\v20260526\PinLoginRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\v20260526\SessionTokenResponse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\v20260526\StateResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\v20260526\UserResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\v20260526\SessionBrowserItem.cs" />
   </ItemGroup>

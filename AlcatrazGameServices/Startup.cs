@@ -119,7 +119,8 @@ namespace Alcatraz.GameServices
 
 			// custom jwt auth middleware
 			app.UseMiddleware<JwtMiddleware>();
-
+			app.UseMiddleware<LogHttpMiddleware>();
+			
 			app.UseEndpoints(endpoints =>
 			{
 				endpoints.MapControllers();

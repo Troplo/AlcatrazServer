@@ -9,4 +9,12 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="config\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AlcatrazDbContext\AlcatrazContext.csproj" />
+  </ItemGroup>
+
 </Project>

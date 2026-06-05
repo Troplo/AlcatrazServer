@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
 
 namespace QNetZ
@@ -9,6 +7,28 @@ namespace QNetZ
 	{
 		public string Token { get; set; }
 	}
+
+	public enum Environment
+	{
+		Prod,
+		Dev,
+		Staging,
+		Test
+	}
+
+	public class MaintenanceConfig
+	{
+		public string title { get; set; }
+		public string message { get; set; }
+		public bool enabled { get; set; }
+	}
+	
+	public class LegalPolicies
+	{
+		public string Terms { get; set; }
+		public string Privacy { get; set; }
+	}
+	
 	public class QConfiguration
 	{
 		public string ServerBindAddress { get; set; }
@@ -22,6 +42,12 @@ namespace QNetZ
 		public int DbType { get; set; }
 		public int LogLevel { get; set; }						// not used in debug server. See Services/RendezVousServer.cs
 		public UbiservicesMicroservice Ubiservices { get; set; }
+		public LegalPolicies LegalPolicies { get; set; }
+		public Environment Environment { get; set; }
+		public MaintenanceConfig MaintenanceConfig { get; set; }
+		public string ServerBaseUrl { get; set; }
+		public string RdvConnectionUrl { get; set; }
+		public bool AllowRegistrations { get; set; }
 		public byte SandboxAccessKeyCheckSum
 		{
 			get

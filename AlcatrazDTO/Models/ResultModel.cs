@@ -16,14 +16,16 @@ namespace Alcatraz.DTO.Models
 			ErrorMessage = errMessage;
 		}
 
-		public ResultModel(Guid id)
+		public ResultModel(Guid id, uint pid)
 		{
 			Success = true;
 			Id = id;
+			PlayerId = pid;
 		}
 
 		public bool Success { get; set; } = true;
 		public Guid Id { get; set; } = Guid.Empty;
+		public uint PlayerId { get; set; } = 0;
 		private string _Message;
 		public string ErrorMessage { 
 			get { return _Message; } 

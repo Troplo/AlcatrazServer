@@ -50,7 +50,9 @@ namespace DSFServices.DDL.Models
 		TNT_PrivacyMode = 203,
 		TNT_Version = 204,
 		TNT_VersionDebug = 205,
-		TNT_DirectJoinCode = 206
+		TNT_DirectJoinCode = 206,
+		TNT_ModsHashStd = 207,
+		TNT_ModsHashGfx = 208,
 
 		// TODO: other parameters
 

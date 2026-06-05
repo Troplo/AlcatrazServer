@@ -24,3 +24,6 @@ _publish/*
 .claude/settings.local.json
 AlcatrazGameServices/_RDV_log.txt
 AlcatrazGameServices/packetLog.bin
+AlcatrazGameServices/appsettings.Development.json
+AlcatrazGameServices/appsettings.json
+data/appsettings.json
