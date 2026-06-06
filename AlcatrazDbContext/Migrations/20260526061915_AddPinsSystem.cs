@@ -15,7 +15,7 @@ namespace Alcatraz.Context.Migrations
                 name: "SessionTokens",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "TEXT", nullable: false),
+                    Id = table.Column<string>(type: "TEXT", nullable: false, maxLength: 36),
                     UserId = table.Column<uint>(type: "INTEGER", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
