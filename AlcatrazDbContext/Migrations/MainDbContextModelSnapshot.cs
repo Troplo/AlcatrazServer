@@ -28,7 +28,7 @@ namespace Alcatraz.Context.Migrations
 
                     b.Property<string>("TokenId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("varchar(36)");
 
                     b.HasKey("Pin");
 
@@ -97,8 +97,7 @@ namespace Alcatraz.Context.Migrations
             modelBuilder.Entity("Alcatraz.Context.Entities.SessionToken", b =>
                 {
                     b.Property<string>("Id")
-                        .HasMaxLength(36)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("varchar(36)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");

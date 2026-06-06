@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Alcatraz.Context.Migrations
 {
     [DbContext(typeof(MainDbContext))]
-    [Migration("20260606120756_InitialMariaDb")]
+    [Migration("20260606121101_InitialMariaDb")]
     partial class InitialMariaDb
     {
         /// <inheritdoc />
@@ -31,7 +31,7 @@ namespace Alcatraz.Context.Migrations
 
                     b.Property<string>("TokenId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("varchar(36)");
 
                     b.HasKey("Pin");
 
@@ -100,8 +100,7 @@ namespace Alcatraz.Context.Migrations
             modelBuilder.Entity("Alcatraz.Context.Entities.SessionToken", b =>
                 {
                     b.Property<string>("Id")
-                        .HasMaxLength(36)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("varchar(36)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");

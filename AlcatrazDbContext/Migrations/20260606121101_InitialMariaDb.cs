@@ -73,7 +73,7 @@ namespace Alcatraz.Context.Migrations
                 name: "SessionTokens",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "TEXT", maxLength: 36, nullable: false),
+                    Id = table.Column<string>(type: "varchar(36)", nullable: false),
                     UserId = table.Column<uint>(type: "INTEGER", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
@@ -119,7 +119,7 @@ namespace Alcatraz.Context.Migrations
                 columns: table => new
                 {
                     Pin = table.Column<string>(type: "TEXT", maxLength: 8, nullable: false),
-                    TokenId = table.Column<string>(type: "TEXT", nullable: false),
+                    TokenId = table.Column<string>(type: "varchar(36)", nullable: false),
                     ExpiresAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>

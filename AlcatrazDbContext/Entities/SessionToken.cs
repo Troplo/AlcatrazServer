@@ -7,7 +7,7 @@ namespace Alcatraz.Context.Entities
 	public class SessionToken
 	{
 		[Key]
-		[MaxLength(36)]
+		[Column(TypeName = "varchar(36)")]
 		public string Id { get; set; }
 		
 		public uint UserId { get; set; }
