@@ -100,6 +100,7 @@ namespace Alcatraz.Context.Migrations
             modelBuilder.Entity("Alcatraz.Context.Entities.SessionToken", b =>
                 {
                     b.Property<string>("Id")
+                        .HasMaxLength(36)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")

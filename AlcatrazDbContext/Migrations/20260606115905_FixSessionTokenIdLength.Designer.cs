@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Alcatraz.Context.Migrations
 {
     [DbContext(typeof(MainDbContext))]
-    [Migration("20260527075030_UpdateUserPrimaryKey")]
-    partial class UpdateUserPrimaryKey
+    [Migration("20260606115905_FixSessionTokenIdLength")]
+    partial class FixSessionTokenIdLength
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
