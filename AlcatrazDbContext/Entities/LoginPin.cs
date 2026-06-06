@@ -8,6 +8,7 @@ namespace Alcatraz.Context.Entities
 	{
 		[Key]
 		[StringLength(8)]
+		[Column(TypeName = "varchar(8)")]
 		public string Pin { get; set; }
 		
 		[Required]
