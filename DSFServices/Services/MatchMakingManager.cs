@@ -101,17 +101,19 @@ namespace DSFServices.Services
 						bool tntPrecheck =
 							TryMatch(GameSessionAttributeType.TNT_Version, p1.Data.tnt_version) &&
 							TryMatch(GameSessionAttributeType.TNT_ModsHashStd, p1.Data.tnt_modsHashStd) &&
-							TryMatch(GameSessionAttributeType.TNT_ModsHashStd, p1.Data.tnt_modsHashStd) &&
 							(hasIgnoreGraphicsMods || TryMatch(GameSessionAttributeType.TNT_ModsHashGfx, p1.Data.tnt_modsHashGfx)) &&
 							 (TryMatch(GameSessionAttributeType.TNT_SessionSettings, (uint)p1.Data.tnt_sessionSettings) || hasIgnoreSessionSettings);
 // #endif
 						
 						bool isSessionExactMatch = sessionGameMode != (int)GameMode.SinglePlayer && sessionGameMode == p1.Data.game_mode;
 						bool isSessionInvasionMatch = (p1.Data.game_mode == (int)GameMode.MPHacking || p1.Data.game_mode == (int)GameMode.MPTailing) && sessionGameMode == 0 && p1.Data.allow_direct_invasion;
+						bool isPublic =
+							session.Attributes.TryGetValue((uint)GameSessionAttributeType.TNT_AdvertisePublicly,
+								out uint advertisePublicly) && advertisePublicly == 1;
 
 						if (!tntPrecheck) continue;
 						
-						if ((isSessionExactMatch || isSessionInvasionMatch))
+						if (((isSessionExactMatch && isPublic) || isSessionInvasionMatch))
 						{
 							var hostInfo = NetworkPlayers.GetPlayerInfoByPID(session.HostPID);
 							if (hostInfo != null && hostInfo.PlayerURLs.Count > 0)
@@ -121,7 +123,7 @@ namespace DSFServices.Services
 								{
 									PID = session.HostPID,
 									Client = hostInfo.Client,
-									Data = p1.Data, // Use guest's data for the match result
+									Data = p1.Data,
 									RequestId = hostRequest != null ? hostRequest.RequestId : new Random().Next(999999)
 								};
 
@@ -141,9 +143,32 @@ namespace DSFServices.Services
 						if (!MatchmakingQueue.Contains(p2)) continue;
 
 						QLog.WriteLine(1, "Matchmaking queue" + p1.PID + " " + p2.PID + " " + p1.Data.game_mode + " " + p2.Data.game_mode);
+										
+						bool hasIgnoreSessionSettingsP1 =
+							(p1.Data.tnt_userSettings & UserSetting.AllowMatchingDifferentSessionSettings)
+							== UserSetting.AllowMatchingDifferentSessionSettings;
+						bool hasIgnoreGraphicsModsP1 =
+							(p1.Data.tnt_sessionSettings & SessionSetting.AllowModsMarkedAsGraphics)
+							== SessionSetting.AllowModsMarkedAsGraphics;
+						bool hasIgnoreSessionSettingsP2 =
+							(p2.Data.tnt_userSettings & UserSetting.AllowMatchingDifferentSessionSettings)
+							== UserSetting.AllowMatchingDifferentSessionSettings;
+						bool hasIgnoreGraphicsModsP2 =
+							(p2.Data.tnt_sessionSettings & SessionSetting.AllowModsMarkedAsGraphics)
+							== SessionSetting.AllowModsMarkedAsGraphics;
+						bool hasIgnoreSessionSettings = hasIgnoreSessionSettingsP1 && hasIgnoreSessionSettingsP2;
+						bool hasIgnoreGraphicsMods = hasIgnoreGraphicsModsP1 && hasIgnoreGraphicsModsP2;
+						
+						bool tntPrecheck = p1.Data.tnt_modsHashStd == p2.Data.tnt_modsHashStd
+						                   && p1.Data.tnt_version == p2.Data.tnt_version 
+						                   && (hasIgnoreGraphicsMods || p1.Data.tnt_modsHashGfx == p2.Data.tnt_modsHashGfx)
+						                   && (hasIgnoreSessionSettings || p1.Data.tnt_sessionSettings == p2.Data.tnt_sessionSettings);
+						
 						bool isExactMatch = p1.Data.game_mode != (int)GameMode.SinglePlayer && p1.Data.game_mode == p2.Data.game_mode;
 						bool isInvasionMatch = ((p1.Data.game_mode == (int)GameMode.MPHacking || p1.Data.game_mode == (int)GameMode.MPTailing) && p2.Data.game_mode == (int)GameMode.SinglePlayer && p2.Data.allow_direct_invasion) ||
 											   ((p2.Data.game_mode == (int)GameMode.MPHacking || p2.Data.game_mode == (int)GameMode.MPTailing) && p1.Data.game_mode == (int)GameMode.SinglePlayer && p1.Data.allow_direct_invasion);
+
+						if (!tntPrecheck) continue;
 
 						if (isExactMatch || isInvasionMatch)
 						{

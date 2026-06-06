@@ -119,7 +119,7 @@ namespace Alcatraz.GameServices
 
 			// custom jwt auth middleware
 			app.UseMiddleware<JwtMiddleware>();
-			app.UseMiddleware<LogHttpMiddleware>();
+			if(QConfiguration.Instance.Environment == Environment.Dev && QConfiguration.Instance.LogLevel == 4) app.UseMiddleware<LogHttpMiddleware>();
 			
 			app.UseEndpoints(endpoints =>
 			{
