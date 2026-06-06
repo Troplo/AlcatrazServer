@@ -58,6 +58,10 @@ namespace Alcatraz.Context
 
 		protected override void OnModelCreating(ModelBuilder builder)
 		{
+			builder.Entity<User>()
+				.Property(x => x.Id)
+				.ValueGeneratedOnAdd();
+			
 			builder.Entity<UserRelationship>()
 				.HasKey(t => new { t.User1Id, t.User2Id });
 
