@@ -73,7 +73,7 @@ namespace DSFServices.Services
 			result.m_typeID = newSession.TypeID;
 
 			MatchMakingManager.CheckMatches();
-
+			QLog.WriteLine(1, $"GameSessionService.CreateSession - created session {newSession.Id}");
 			return Result(result);
 		}
 
