@@ -35,7 +35,7 @@ namespace Alcatraz.Context.Migrations
                 columns: table => new
                 {
                     Pin = table.Column<string>(type: "TEXT", maxLength: 8, nullable: false),
-                    TokenId = table.Column<string>(type: "TEXT", nullable: false),
+                    TokenId = table.Column<string>(type: "TEXT", nullable: false, maxLength: 36),
                     ExpiresAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
