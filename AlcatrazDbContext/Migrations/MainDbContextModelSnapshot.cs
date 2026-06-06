@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace AlcatrazDbContext.Migrations
+namespace Alcatraz.Context.Migrations
 {
     [DbContext(typeof(MainDbContext))]
     partial class MainDbContextModelSnapshot : ModelSnapshot

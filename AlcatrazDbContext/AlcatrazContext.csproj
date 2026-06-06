@@ -20,6 +20,10 @@
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
   <Import Project="..\AlcatrazDTO\AlcatrazDTO.projitems" Label="Shared" />
 
 </Project>
