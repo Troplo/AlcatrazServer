@@ -25,6 +25,10 @@ namespace Alcatraz.GameServices.Controllers.Ubiservices.V1
         public async Task<IActionResult> GetProfile([FromQuery] string profileId)
         {
             var user = DBHelper.GetUserByGuid(profileId);
+            if(user == null) return NotFound(new
+            {
+                error = "Profile not found"
+            });
             return Ok(new
             {
                 profiles = new[]

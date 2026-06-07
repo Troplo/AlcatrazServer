@@ -59,7 +59,7 @@ namespace Alcatraz.GameServices.Controllers.v20260526
             if (request == null || string.IsNullOrWhiteSpace(request.email) ||
                 string.IsNullOrWhiteSpace(request.password) || string.IsNullOrWhiteSpace(request.username))
                 return BadRequest("Invalid request.");
-
+            
             var result = _userService.Register(new UserRegisterModel
             {
                 Email = request.email,
