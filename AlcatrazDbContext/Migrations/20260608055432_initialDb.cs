@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,76 +7,89 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Alcatraz.Context.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMariaDb : Migration
+    public partial class initialDb : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AlterDatabase()
+                .Annotation("MySql:CharSet", "utf8mb4");
+
             migrationBuilder.CreateTable(
                 name: "PlayerStatisticBoards",
                 columns: table => new
                 {
-                    Id = table.Column<uint>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    PlayerId = table.Column<uint>(type: "INTEGER", nullable: false),
-                    BoardId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Rank = table.Column<int>(type: "INTEGER", nullable: false),
-                    Score = table.Column<float>(type: "REAL", nullable: false),
-                    LastUpdate = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<uint>(type: "int unsigned", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    PlayerId = table.Column<uint>(type: "int unsigned", nullable: false),
+                    BoardId = table.Column<int>(type: "int", nullable: false),
+                    Rank = table.Column<int>(type: "int", nullable: false),
+                    Score = table.Column<float>(type: "float", nullable: false),
+                    LastUpdate = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_PlayerStatisticBoards", x => x.Id);
-                });
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<uint>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Email = table.Column<string>(type: "TEXT", nullable: true),
-                    Guid = table.Column<Guid>(type: "TEXT", nullable: false),
-                    PlayerNickName = table.Column<string>(type: "TEXT", nullable: true),
-                    Password = table.Column<string>(type: "TEXT", nullable: true),
-                    RewardFlags = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<uint>(type: "int unsigned", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Email = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Guid = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    PlayerNickName = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Password = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    RewardFlags = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
-                });
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "PlayerStatisticBoardValues",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    PlayerBoardId = table.Column<uint>(type: "INTEGER", nullable: false),
-                    PropertyId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ValueJSON = table.Column<string>(type: "TEXT", nullable: true),
-                    RankingCriterionIndex = table.Column<int>(type: "INTEGER", nullable: false),
-                    SliceScoreJSON = table.Column<string>(type: "TEXT", nullable: true),
-                    ScoreLostForNextSliceJSON = table.Column<string>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    PlayerBoardId = table.Column<uint>(type: "int unsigned", nullable: false),
+                    PropertyId = table.Column<int>(type: "int", nullable: false),
+                    ValueJSON = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    RankingCriterionIndex = table.Column<int>(type: "int", nullable: false),
+                    SliceScoreJSON = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ScoreLostForNextSliceJSON = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_PlayerStatisticBoardValues", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PlayerStatisticBoardValues_PlayerStatisticBoards_PlayerBoardId",
+                        name: "FK_PlayerStatisticBoardValues_PlayerStatisticBoards_PlayerBoard~",
                         column: x => x.PlayerBoardId,
                         principalTable: "PlayerStatisticBoards",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "SessionTokens",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "varchar(36)", nullable: false),
-                    UserId = table.Column<uint>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<string>(type: "varchar(36)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UserId = table.Column<uint>(type: "int unsigned", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -86,16 +100,17 @@ namespace Alcatraz.Context.Migrations
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "UserRelationships",
                 columns: table => new
                 {
-                    User1Id = table.Column<uint>(type: "INTEGER", nullable: false),
-                    User2Id = table.Column<uint>(type: "INTEGER", nullable: false),
-                    ByRelationShip = table.Column<uint>(type: "INTEGER", nullable: false),
-                    Details = table.Column<uint>(type: "INTEGER", nullable: false)
+                    User1Id = table.Column<uint>(type: "int unsigned", nullable: false),
+                    User2Id = table.Column<uint>(type: "int unsigned", nullable: false),
+                    ByRelationShip = table.Column<uint>(type: "int unsigned", nullable: false),
+                    Details = table.Column<uint>(type: "int unsigned", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -112,15 +127,18 @@ namespace Alcatraz.Context.Migrations
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "LoginPins",
                 columns: table => new
                 {
-                    Pin = table.Column<string>(type: "varchar(8)", maxLength: 8, nullable: false),
-                    TokenId = table.Column<string>(type: "varchar(36)", nullable: false),
-                    ExpiresAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Pin = table.Column<string>(type: "varchar(8)", maxLength: 8, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TokenId = table.Column<string>(type: "varchar(36)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -131,7 +149,8 @@ namespace Alcatraz.Context.Migrations
                         principalTable: "SessionTokens",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LoginPins_TokenId",
