@@ -1,75 +1,75 @@
 ﻿using System;
 using System.Security.Cryptography;
+using System.Text;
+using Konscious.Security.Cryptography;
 
 namespace Alcatraz.DTO.Helpers
 {
 #if NET5_0_OR_GREATER
-	public static class SecurePasswordHasher
-	{
-		private const int SaltSize = 8;
-		private const int HashSize = 6;
+        public static class SecurePasswordHasher
+        {
+            private const int SaltSize = 16;
+            private const int HashSize = 32;
 
-		private const int HashIterations = 10000;
+            private const int MemorySize = 65536;
+            private const int Iterations = 4;
+            private const int DegreeOfParallelism = 2;
 
-		private static string Hash(string password, int iterations)
-		{
-			// Create salt
-			byte[] salt;
-			using (var rng = new RNGCryptoServiceProvider())
-			{
-				rng.GetBytes(salt = new byte[SaltSize]);
-			}
+            private const int FormatVersion = 1;
 
-			// Create hash
-			byte[] hash;
-			using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations))
-			{
-				hash = pbkdf2.GetBytes(HashSize);
-			}
+            private static byte[] HashPassword(string password, byte[] salt, int memory, int iterations,
+                int parallelism)
+            {
+                var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password));
+                argon2.Salt = salt;
+                argon2.MemorySize = memory;
+                argon2.Iterations = iterations;
+                argon2.DegreeOfParallelism = parallelism;
 
-			// Combine salt and hash
-			var hashBytes = new byte[SaltSize + HashSize];
-			Array.Copy(salt, 0, hashBytes, 0, SaltSize);
-			Array.Copy(hash, 0, hashBytes, SaltSize, HashSize);
+                return argon2.GetBytes(HashSize);
+            }
 
-			// Convert to base64
-			var base64Hash = Convert.ToHexString(hashBytes);
+            public static string Hash(string password)
+            {
+                byte[] salt = RandomNumberGenerator.GetBytes(SaltSize);
+                byte[] hash = HashPassword(password, salt, MemorySize, Iterations, DegreeOfParallelism);
 
-			// Format hash with extra information
-			return base64Hash;
-		}
+                string saltB64 = Convert.ToBase64String(salt);
+                string hashB64 = Convert.ToBase64String(hash);
 
-		public static string Hash(string password)
-		{
-			return Hash(password, HashIterations);
-		}
+                return
+                    $"$argon2id$v={FormatVersion}$m={MemorySize},t={Iterations},p={DegreeOfParallelism}${saltB64}${hashB64}";
+            }
 
-		public static bool Verify(string password, string base64Hash)
-		{
-			// Get hash bytes
-			var hashBytes = Convert.FromHexString(base64Hash);
+            public static bool Verify(string password, string stored)
+            {
+                if (string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(stored))
+                    return false;
 
-			// Get salt
-			var salt = new byte[SaltSize];
-			Array.Copy(hashBytes, 0, salt, 0, SaltSize);
+                string[] parts = stored.Split('$', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length != 5)
+                    return false;
 
-			// Create hash with given salt
-			byte[] hash;
-			using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, HashIterations))
-			{
-				hash = pbkdf2.GetBytes(HashSize);
-			}
+                if (parts[0] != "argon2id")
+                    return false;
 
-			// Get result
-			for (var i = 0; i < HashSize; i++)
-			{
-				if (hashBytes[i + SaltSize] != hash[i])
-				{
-					return false;
-				}
-			}
-			return true;
-		}
-	}
+                string versionPart = parts[1];
+                int version = int.Parse(versionPart.Split('=')[1]);
+                if (version != FormatVersion)
+                    return false;
+
+                string[] paramParts = parts[2].Split(',');
+                int memory = int.Parse(paramParts[0].Split('=')[1]);
+                int iterations = int.Parse(paramParts[1].Split('=')[1]);
+                int parallelism = int.Parse(paramParts[2].Split('=')[1]);
+
+                byte[] salt = Convert.FromBase64String(parts[3]);
+                byte[] expectedHash = Convert.FromBase64String(parts[4]);
+
+                byte[] actualHash = HashPassword(password, salt, memory, iterations, parallelism);
+
+                return CryptographicOperations.FixedTimeEquals(actualHash, expectedHash);
+            }
+        }
 #endif
 }
