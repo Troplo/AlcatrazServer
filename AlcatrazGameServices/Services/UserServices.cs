@@ -172,7 +172,8 @@ namespace Alcatraz.GameServices.Services
 
 			// update password as user Id is acquired
 			{
-				newUser.Password = SecurePasswordHasher.Hash($"{newUser.Id}-{model.Password}");
+				newUser.Password = 
+					SecurePasswordHasher.Hash($"{newUser.Id}-{model.Password}");
 				_dbContext.SaveChanges();
 			}
 
