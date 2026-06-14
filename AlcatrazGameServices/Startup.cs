@@ -34,9 +34,19 @@ namespace Alcatraz.GameServices
 			services.Configure<QConfiguration>(Configuration.GetSection("Services"));
 
 			var secOpts = Configuration.GetSection("Services").Get<QConfiguration>();
+			services.AddControllers(options =>
+			{
+				options.Filters.Add<ApiResponseWrapperFilter>();
+			});
 			services.AddScoped<UbiservicesTokenFilter>();
 			services.AddCors();
-			services.AddControllers();
+
+			services.AddOptions<Microsoft.AspNetCore.Mvc.JsonOptions>()
+				.Configure<System.IServiceProvider>((options, sp) =>
+				{
+					options.JsonSerializerOptions.TypeInfoResolver = new VersionedModelTypeInfoResolver(sp);
+				});
+
 			services.AddSession();
 			services.AddHttpContextAccessor();
 			services.AddRazorPages(options =>
@@ -100,6 +110,8 @@ namespace Alcatraz.GameServices
 				app.UseDeveloperExceptionPage();
 			}
 
+			app.UseMiddleware<ApiExceptionMiddleware>();
+
 			// Enable middleware to serve generated Swagger as a JSON endpoint.
 			app.UseSwagger();
 
@@ -112,6 +124,7 @@ namespace Alcatraz.GameServices
 
 
 			app.UseRouting();
+			app.UseMiddleware<ApiVersionMiddleware>();
 
 			app.UseAuthentication();
 			app.UseAuthorization();

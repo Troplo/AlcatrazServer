@@ -15,5 +15,6 @@ namespace Alcatraz.DTO.Models
 		public string PlayerNickName { get; set; }
 
 		public int RewardFlags { get; set; }
+		public int NotorietyPoints { get; set; }
 	}
 }

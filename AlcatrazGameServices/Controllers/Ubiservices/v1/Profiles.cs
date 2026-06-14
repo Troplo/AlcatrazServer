@@ -9,7 +9,7 @@ using RDVServices;
 namespace Alcatraz.GameServices.Controllers.Ubiservices.V1
 {
     [ApiController]
-    [Route("v1/profiles")]
+    [Route("v{version}/profiles")]
     public class ProfilesController(IUserService userService, MainDbContext dbContext) : ControllerBase
     {
         [HttpGet("{id}/club/rewards")]

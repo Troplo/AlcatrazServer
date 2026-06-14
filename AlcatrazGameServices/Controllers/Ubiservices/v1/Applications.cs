@@ -6,7 +6,7 @@ using QNetZ;
 namespace Alcatraz.GameServices.Controllers.Ubiservices.V1
 {
     [ApiController]
-    [Route("v1/applications")]
+    [Route("v{version}/applications")]
     public class ApplicationsController : ControllerBase
     {
         [HttpGet("{id}/parameters")]

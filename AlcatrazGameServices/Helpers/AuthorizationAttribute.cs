@@ -1,4 +1,5 @@
-﻿using Alcatraz.DTO.Models;
+using Alcatraz.DTO.Models;
+using Alcatraz.DTO.Models.v20260526;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -14,8 +15,7 @@ namespace Alcatraz.GameServices.Helpers
 			var user = (UserModel)context.HttpContext.Items["User"];
 			if (user == null)
 			{
-				// not logged in
-				context.Result = new JsonResult(new { message = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
+				context.Result = ApiErrorHelper.CreateErrorResult(context.HttpContext, TNTMPErrorCode.SERVER_Unauthorized, "Unauthorized", 401);
 			}
 		}
 	}

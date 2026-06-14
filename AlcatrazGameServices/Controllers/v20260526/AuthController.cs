@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Threading.Tasks;
 using Alcatraz.Context;
 using Alcatraz.DTO.Models;
@@ -7,11 +8,12 @@ using Alcatraz.GameServices.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QNetZ;
+using Alcatraz.GameServices.Helpers;
 
 namespace Alcatraz.GameServices.Controllers.v20260526
 {
     [ApiController]
-    [Route("api/v20260526/auth")]
+    [Route("api/v{version}/auth")]
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -38,7 +40,7 @@ namespace Alcatraz.GameServices.Controllers.v20260526
 
             if (res == null)
             {
-                return Unauthorized("Invalid email or password.");
+                return ApiErrorHelper.CreateErrorResult(HttpContext, TNTMPErrorCode.USER_InvalidCredentials, "Invalid email or password.", (int)HttpStatusCode.Unauthorized);
             }
 
             var token = new Alcatraz.Context.Entities.SessionToken
@@ -58,7 +60,7 @@ namespace Alcatraz.GameServices.Controllers.v20260526
         {
             if (request == null || string.IsNullOrWhiteSpace(request.email) ||
                 string.IsNullOrWhiteSpace(request.password) || string.IsNullOrWhiteSpace(request.username))
-                return BadRequest("Invalid request.");
+                return ApiErrorHelper.CreateErrorResult(HttpContext, TNTMPErrorCode.GenericValidationError, "Ensure all fields are populated.", (int)HttpStatusCode.Unauthorized);
             
             var result = _userService.Register(new UserRegisterModel
             {
@@ -68,8 +70,9 @@ namespace Alcatraz.GameServices.Controllers.v20260526
             });
 
             if (!result.Success)
-                return BadRequest(result);
-
+            {
+                return ApiErrorHelper.CreateErrorResult(HttpContext, result.Code, result.ErrorMessage, (int)HttpStatusCode.Unauthorized);
+            }
             var token = new Alcatraz.Context.Entities.SessionToken
             {
                 Id = Guid.NewGuid().ToString(),

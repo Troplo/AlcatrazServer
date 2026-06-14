@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Alcatraz.GameServices.Controllers.Ubiservices.V1
 {
     [ApiController]
-    [Route("v1/users")]
+    [Route("v{version}/users")]
     public class UsersController(IUserService userService, MainDbContext dbContext) : ControllerBase
     {
         [HttpGet("{id}")]

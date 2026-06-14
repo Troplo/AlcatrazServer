@@ -3,13 +3,14 @@ using Alcatraz.DTO.Models.v20260526;
 using Alcatraz.GameServices.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
+using System.Net;
 using QNetZ;
 using Environment = QNetZ.Environment;
 
 namespace Alcatraz.GameServices.Controllers.v20260526
 {
 	[ApiController]
-	[Route("api/v20260526/sessions")]
+	[Route("api/v{version}/sessions")]
 	public class SessionsController : ControllerBase
 	{
 		[Authorize]
@@ -18,10 +19,7 @@ namespace Alcatraz.GameServices.Controllers.v20260526
 		{
 			if(QConfiguration.Instance.Environment == Environment.Prod) 
 			{
-				return BadRequest(new
-				{
-					error = "Session browsing is not available in prod."
-				});
+				return ApiErrorHelper.CreateErrorResult(HttpContext, TNTMPErrorCode.GenericValidationError, "Session browsing not available in prod.", (int)HttpStatusCode.Unauthorized);
 			}
 			var sessions = DSFServices.GameSessions.SessionList.Select(s => {
 				var hostPlayer = QNetZ.NetworkPlayers.GetPlayerInfoByPID(s.HostPID);

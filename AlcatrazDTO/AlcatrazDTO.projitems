@@ -10,22 +10,28 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Constants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\ApiVersionSince.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\SecurePasswordHasher.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\StringHasher.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\AlcatrazClientConfig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\AuthenticateRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\AuthenticateResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\ChangePasswordRequest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\ApiException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\ApiResponse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\AuthRequest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\LegalResponse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\NotorietySyncRequest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\NotorietySyncResponse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\PinLoginRequest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\SessionBrowserItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\SessionTokenResponse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\StateResponse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\TntMpApiErrors.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\UserResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\ResultModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\OnlineConfigEntry.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\UserModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\UserRegisterModel.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\v20260526\AuthRequest.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\v20260526\LegalResponse.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\v20260526\PinLoginRequest.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\v20260526\SessionTokenResponse.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\v20260526\StateResponse.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\v20260526\UserResponse.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\v20260526\SessionBrowserItem.cs" />
   </ItemGroup>
 </Project>

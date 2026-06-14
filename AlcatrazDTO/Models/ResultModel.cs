@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Alcatraz.DTO.Models.v20260526;
 
 namespace Alcatraz.DTO.Models
 {
@@ -11,9 +12,10 @@ namespace Alcatraz.DTO.Models
 		{
 		}
 
-		public ResultModel(string errMessage)
+		public ResultModel(TNTMPErrorCode code, string errMessage)
 		{
 			ErrorMessage = errMessage;
+			Code = code;
 		}
 
 		public ResultModel(Guid id, uint pid)
@@ -26,6 +28,7 @@ namespace Alcatraz.DTO.Models
 		public bool Success { get; set; } = true;
 		public Guid Id { get; set; } = Guid.Empty;
 		public uint PlayerId { get; set; } = 0;
+		public TNTMPErrorCode Code { get; set; } = TNTMPErrorCode.None;
 		private string _Message;
 		public string ErrorMessage { 
 			get { return _Message; } 

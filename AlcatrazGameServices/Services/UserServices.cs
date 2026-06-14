@@ -12,6 +12,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using Alcatraz.DTO.Models.v20260526;
 using QNetZ;
 
 namespace Alcatraz.GameServices.Services
@@ -28,6 +29,7 @@ namespace Alcatraz.GameServices.Services
 
 		public IEnumerable<Claim> GetUserClaims(UserModel user);
 		string GenerateJwtToken(UserModel userModel);
+		public int UpdateNotoriety(Guid userId, int points, int clientDelta, uint gameSessionId, int gamemode);
 	}
 
 	public class UserService : IUserService
@@ -63,7 +65,8 @@ namespace Alcatraz.GameServices.Services
 				Guid = user.Guid,
 				PlayerNickName = user.PlayerNickName,
 				Email = user.Email,
-				RewardFlags = user.RewardFlags
+				RewardFlags = user.RewardFlags,
+				NotorietyPoints = user.NotorietyPoints
 			};
 
 			// authentication successful so generate jwt token
@@ -82,7 +85,8 @@ namespace Alcatraz.GameServices.Services
 					Guid = x.Guid,
 					PlayerNickName = x.PlayerNickName,
 					Email = x.Email,
-					RewardFlags = x.RewardFlags
+					RewardFlags = x.RewardFlags,
+					NotorietyPoints = x.NotorietyPoints
 				}).ToArray();
 		}
 		
@@ -96,7 +100,8 @@ namespace Alcatraz.GameServices.Services
 					Guid = x.Guid,
 					PlayerNickName = x.PlayerNickName,
 					Email = x.Email,
-					RewardFlags = x.RewardFlags
+					RewardFlags = x.RewardFlags,
+					NotorietyPoints = x.NotorietyPoints
 				})
 				.FirstOrDefault(x => x.Id == id);
 		}
@@ -111,7 +116,8 @@ namespace Alcatraz.GameServices.Services
 					Guid = x.Guid,
 					PlayerNickName = x.PlayerNickName,
 					Email = x.Email,
-					RewardFlags = x.RewardFlags
+					RewardFlags = x.RewardFlags,
+					NotorietyPoints = x.NotorietyPoints
 				})
 				.FirstOrDefault(x => x.Guid == id);
 		}
@@ -124,16 +130,16 @@ namespace Alcatraz.GameServices.Services
 		public ResultModel Register(UserRegisterModel model)
 		{
 			if(!QConfiguration.Instance.AllowRegistrations)
-				return new ResultModel("Registrations are disabled");
+				return new ResultModel(TNTMPErrorCode.USER_RegistrationsDisabled, "Registrations are disabled");
 			
 			if (string.IsNullOrWhiteSpace(model.Email))
-				return new ResultModel("Email is incorrect or empty");
+				return new ResultModel(TNTMPErrorCode.GenericValidationError, "Email is incorrect or empty");
 
 			if (string.IsNullOrWhiteSpace(model.PlayerNickName))
-				return new ResultModel("PlayerNickName is incorrect or empty");
+				return new ResultModel(TNTMPErrorCode.GenericValidationError, "PlayerNickName is incorrect or empty");
 
 			if (string.IsNullOrWhiteSpace(model.Password))
-				return new ResultModel("Password is incorrect or empty");
+				return new ResultModel(TNTMPErrorCode.GenericValidationError, "Password is incorrect or empty");
 
 			var newUser = new User()
 			{
@@ -152,12 +158,16 @@ namespace Alcatraz.GameServices.Services
 					PlayerNickName = "dummy",
 					Password = "dummy",
 					RewardFlags = 0,
+					NotorietyPoints = 0
 				});
 				_dbContext.SaveChanges();
 			}
 
-			if (_dbContext.Users.Any(x => x.Email == model.Email || x.PlayerNickName == model.PlayerNickName))
-				return new ResultModel("User with same name or nickname is already present");
+			if (_dbContext.Users.Any(x => x.Email == model.Email))
+				return new ResultModel(TNTMPErrorCode.USER_EmailAlreadyExists, "User with same email is already present");
+
+			if (_dbContext.Users.Any(x => x.PlayerNickName == model.PlayerNickName))
+				return new ResultModel(TNTMPErrorCode.USER_UsernameAlreadyExists, "User with same username is already present");
 
 			try
 			{
@@ -167,7 +177,7 @@ namespace Alcatraz.GameServices.Services
 			catch(Exception ex)
 			{
 				QLog.WriteLine(1, ex.Message);
-				return new ResultModel("Unable to add user (internal error)");
+				return new ResultModel(TNTMPErrorCode.SERVER_InternalServerError, "Unable to add user (internal error)");
 			}
 
 			// update password as user Id is acquired
@@ -185,7 +195,7 @@ namespace Alcatraz.GameServices.Services
 			var user = GetByIdInternal(model.Guid);
 
 			if (user == null)
-				return new ResultModel("User with that Id was not found");
+				return new ResultModel(TNTMPErrorCode.USER_UserNotFound, "User with that Id was not found");
 
 			if(user.Email == model.Email && user.PlayerNickName == model.PlayerNickName)
 			{
@@ -195,12 +205,12 @@ namespace Alcatraz.GameServices.Services
 
 			if (user.Email != model.Email && _dbContext.Users.Any(x => x.Email == model.Email))
 			{
-				return new ResultModel("User with same email is already present");
+				return new ResultModel(TNTMPErrorCode.USER_EmailAlreadyExists, "User with same email is already present");
 			}
 
 			if (user.PlayerNickName != model.PlayerNickName && _dbContext.Users.Any(x => x.PlayerNickName == model.PlayerNickName))
 			{
-				return new ResultModel("User with same nickname is already present");
+				return new ResultModel(TNTMPErrorCode.USER_UsernameAlreadyExists, "User with same nickname is already present");
 			}
 
 			try
@@ -212,7 +222,7 @@ namespace Alcatraz.GameServices.Services
 			}
 			catch
 			{
-				return new ResultModel("Unable to update user (internal error)");
+				return new ResultModel(TNTMPErrorCode.SERVER_InternalServerError, "Unable to update user (internal error)");
 			}
 
 			return new ResultModel();
@@ -223,7 +233,7 @@ namespace Alcatraz.GameServices.Services
 			var user = GetByIdInternal(userId);
 
 			if (user == null)
-				return new ResultModel("User with that Id was not found");
+				return new ResultModel(TNTMPErrorCode.USER_UserNotFound, "User with that Id was not found");
 
 			try
 			{
@@ -232,7 +242,7 @@ namespace Alcatraz.GameServices.Services
 			}
 			catch
 			{
-				return new ResultModel("Unable to update user (internal error)");
+				return new ResultModel(TNTMPErrorCode.SERVER_InternalServerError, "Unable to update user (internal error)");
 			}
 
 			return new ResultModel();
@@ -263,6 +273,31 @@ namespace Alcatraz.GameServices.Services
 				new Claim("uid", user.Id.ToString()),
 				new Claim(ClaimTypes.Name, user.Email),
 			};
+		}
+
+		public int UpdateNotoriety(Guid userId, int points, int clientDelta, uint gameSessionId, int gamemode)
+		{
+			var user = GetByIdInternal(userId);
+			int currentPoints = user.NotorietyPoints;
+			int realDelta = currentPoints - points;
+			bool update = true;
+			if (realDelta != clientDelta)
+			{
+				update = false;
+			}
+
+			if (gamemode == 0 || gamemode == 8 || gamemode == 7 || gamemode == 6)
+			{
+				update = false;
+			}
+
+			if (update)
+			{ 
+				user.NotorietyPoints = points;
+				_dbContext.SaveChanges();
+			}
+
+			return user.NotorietyPoints;
 		}
 	}
 }

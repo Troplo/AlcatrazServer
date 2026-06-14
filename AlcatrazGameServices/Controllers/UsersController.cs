@@ -12,6 +12,7 @@ using System.Text;
 using Microsoft.Extensions.Options;
 using QNetZ;
 using Alcatraz.DTO;
+using Alcatraz.DTO.Models.v20260526;
 using Constants = Alcatraz.DTO.Constants;
 using Microsoft.Extensions.Configuration;
 
@@ -37,7 +38,7 @@ namespace Alcatraz.GameServices.Controllers
 
 			if (response == null)
 			{
-				return Unauthorized(new ResultModel("Username or password is incorrect"));
+				return Unauthorized(new ResultModel(TNTMPErrorCode.USER_UserNotFound, "Username or password is incorrect"));
 			}
 
 			return Ok(response);
@@ -61,7 +62,7 @@ namespace Alcatraz.GameServices.Controllers
 			var user = (UserModel)HttpContext.Items["User"];
 
 			if (user == null)
-				return Unauthorized(new ResultModel("Unable to update user"));
+				return Unauthorized(new ResultModel(TNTMPErrorCode.USER_UserNotFound, "Unable to update user"));
 
 			model.Id = user.Id;
 
@@ -83,7 +84,7 @@ namespace Alcatraz.GameServices.Controllers
 			var user = (UserModel)HttpContext.Items["User"];
 
 			if (user == null)
-				return Unauthorized(new ResultModel("Unable to change user password"));
+				return Unauthorized(new ResultModel(TNTMPErrorCode.USER_UserNotFound, "Unable to change user password"));
 
 			var result = _userService.ChangePassword(user.Guid, model.NewPassword);
 

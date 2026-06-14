@@ -1,19 +1,21 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
 using Alcatraz.Context;
 using Alcatraz.DTO.Models;
+using Alcatraz.DTO.Models.v20260526;
 using Alcatraz.GameServices.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using QNetZ;
 using RDVServices;
-
+using Alcatraz.GameServices.Helpers;
 namespace Alcatraz.GameServices.Controllers.v20260526;
 
 [ApiController]
 [ServiceFilter(typeof(UbiservicesTokenFilter))]
-[Route("api/v20260526/ubiservices")]
+[Route("api/v{version}/ubiservices")]
 public class UbiservicesInteropController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -34,10 +36,7 @@ public class UbiservicesInteropController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(ticket) && guid == null)
         {
-            return BadRequest(new
-            {
-                error = "Either ticket or userId must be provided"
-            });
+            return ApiErrorHelper.CreateErrorResult(HttpContext, TNTMPErrorCode.GenericValidationError, "Missing ticket.", (int)HttpStatusCode.BadRequest);
         }
         
         UserModel user;
@@ -50,10 +49,7 @@ public class UbiservicesInteropController : ControllerBase
             
             if (session == null)
             {
-                return Unauthorized(new
-                {
-                    error = "Invalid ticket"
-                });
+                return ApiErrorHelper.CreateErrorResult(HttpContext, TNTMPErrorCode.SERVER_Unauthorized, "Session invalid or expired.", (int)HttpStatusCode.Unauthorized);
             }
 
             user =
@@ -61,10 +57,7 @@ public class UbiservicesInteropController : ControllerBase
 
             if (user == null)
             {
-                return Unauthorized(new
-                {
-                    error = "User not found"
-                });
+                return ApiErrorHelper.CreateErrorResult(HttpContext, TNTMPErrorCode.SERVER_Unauthorized, "Session invalid or expired.", (int)HttpStatusCode.Unauthorized);
             }
         }
         else if (guid != null)
@@ -74,18 +67,12 @@ public class UbiservicesInteropController : ControllerBase
             
             if (user == null)
             {
-                return NotFound(new
-                {
-                    error = "User not found"
-                });
+                return ApiErrorHelper.CreateErrorResult(HttpContext, TNTMPErrorCode.SERVER_Unauthorized, "Session invalid or expired.", (int)HttpStatusCode.Unauthorized);
             }
         }
         else
         {
-            return NotFound(new
-            {
-                error = "User not found"
-            });
+            return ApiErrorHelper.CreateErrorResult(HttpContext, TNTMPErrorCode.SERVER_Unauthorized, "Session invalid or expired.", (int)HttpStatusCode.Unauthorized);
         }
         
         return Ok(new

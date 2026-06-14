@@ -3,11 +3,13 @@ using Alcatraz.DTO.Models.v20260526;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
+using System.Net;
+using Alcatraz.GameServices.Helpers;
 
 namespace Alcatraz.GameServices.Controllers.v20260526
 {
 	[ApiController]
-	[Route("api/v20260526/pins")]
+	[Route("api/v{version}/pins")]
 	public class PinsController : ControllerBase
 	{
 		private readonly MainDbContext _dbContext;
@@ -27,13 +29,13 @@ namespace Alcatraz.GameServices.Controllers.v20260526
 			var pin = _dbContext.LoginPins.FirstOrDefault(p => p.Pin == pinStr);
 
 			if (pin == null)
-				return Unauthorized("Invalid PIN.");
+				return ApiErrorHelper.CreateErrorResult(HttpContext, TNTMPErrorCode.USER_InvalidPIN, "Invalid PIN", (int)HttpStatusCode.Unauthorized);
 
 			if (pin.ExpiresAt < DateTime.UtcNow)
 			{
 				_dbContext.LoginPins.Remove(pin);
 				_dbContext.SaveChanges();
-				return Unauthorized("PIN has expired.");
+				return ApiErrorHelper.CreateErrorResult(HttpContext, TNTMPErrorCode.USER_InvalidPIN, "PIN has expired", (int)HttpStatusCode.Unauthorized);
 			}
 
 			var token = pin.TokenId;

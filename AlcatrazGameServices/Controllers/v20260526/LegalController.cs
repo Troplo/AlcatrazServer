@@ -5,7 +5,7 @@ using QNetZ;
 namespace Alcatraz.GameServices.Controllers.v20260526
 {
     [ApiController]
-    [Route("api/v20260526/legal")]
+    [Route("api/v{version}/legal")]
     public class LegalController : ControllerBase
     {
         [HttpGet("policies")]

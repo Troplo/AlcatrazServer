@@ -5,7 +5,7 @@ using QNetZ;
 namespace Alcatraz.GameServices.Controllers.v20260526
 {
     [ApiController]
-    [Route("api/v20260526/state")]
+    [Route("api/v{version}/state")]
     public class StateController : ControllerBase
     {
         [HttpGet("")]
