@@ -81,7 +81,6 @@ namespace Alcatraz.GameServices
 			services.AddSingleton<IHostedService, BackendServicesServer>();
 			services.AddSingleton<IHostedService, RendezVousServer>();
 
-            var secOpts = Configuration.GetSection("Services").Get<QConfiguration>();
             services.AddDbContext<MainDbContext>(opt =>
 			{
 				MainDbContext.OnContextBuilding(opt, (DBType)secOpts.DbType, secOpts.DbConnectionString);

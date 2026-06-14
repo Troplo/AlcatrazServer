@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Alcatraz.Context.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateUserData : Migration
+    public partial class syncUpstream : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -14,28 +14,28 @@ namespace Alcatraz.Context.Migrations
             migrationBuilder.AddColumn<DateTime>(
                 name: "CreatedTime",
                 table: "Users",
-                type: "TEXT",
+                type: "datetime(6)",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
 
             migrationBuilder.AddColumn<bool>(
                 name: "IsAdmin",
                 table: "Users",
-                type: "INTEGER",
+                type: "tinyint(1)",
                 nullable: false,
                 defaultValue: false);
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "LastPlayTime",
                 table: "Users",
-                type: "TEXT",
+                type: "datetime(6)",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "LastUpdateTime",
                 table: "Users",
-                type: "TEXT",
+                type: "datetime(6)",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
         }

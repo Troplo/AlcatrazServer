@@ -11,35 +11,57 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Alcatraz.Context.Migrations
 {
     [DbContext(typeof(MainDbContext))]
-    [Migration("20241031112138_UpdateUserData")]
-    partial class UpdateUserData
+    [Migration("20260614154153_syncUpstream")]
+    partial class syncUpstream
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.1");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "8.0.1")
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
+
+            modelBuilder.Entity("Alcatraz.Context.Entities.LoginPin", b =>
+                {
+                    b.Property<string>("Pin")
+                        .HasMaxLength(8)
+                        .HasColumnType("varchar(8)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("TokenId")
+                        .IsRequired()
+                        .HasColumnType("varchar(36)");
+
+                    b.HasKey("Pin");
+
+                    b.HasIndex("TokenId");
+
+                    b.ToTable("LoginPins");
+                });
 
             modelBuilder.Entity("Alcatraz.Context.Entities.PlayerStatisticsBoard", b =>
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int unsigned");
 
                     b.Property<int>("BoardId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("LastUpdate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<uint>("PlayerId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int unsigned");
 
                     b.Property<int>("Rank")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<float>("Score")
-                        .HasColumnType("REAL");
+                        .HasColumnType("float");
 
                     b.HasKey("Id");
 
@@ -50,25 +72,25 @@ namespace Alcatraz.Context.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<uint>("PlayerBoardId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int unsigned");
 
                     b.Property<int>("PropertyId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("RankingCriterionIndex")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("ScoreLostForNextSliceJSON")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("SliceScoreJSON")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("ValueJSON")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -77,35 +99,59 @@ namespace Alcatraz.Context.Migrations
                     b.ToTable("PlayerStatisticBoardValues");
                 });
 
+            modelBuilder.Entity("Alcatraz.Context.Entities.SessionToken", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<uint>("UserId")
+                        .HasColumnType("int unsigned");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SessionTokens");
+                });
+
             modelBuilder.Entity("Alcatraz.Context.Entities.User", b =>
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int unsigned");
 
                     b.Property<DateTime>("CreatedTime")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid>("Guid")
+                        .HasColumnType("char(36)");
 
                     b.Property<bool>("IsAdmin")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<DateTime>("LastPlayTime")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("LastUpdateTime")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("NotorietyPoints")
+                        .HasColumnType("int");
 
                     b.Property<string>("Password")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("PlayerNickName")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("RewardFlags")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Username")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -115,22 +161,33 @@ namespace Alcatraz.Context.Migrations
             modelBuilder.Entity("Alcatraz.Context.Entities.UserRelationship", b =>
                 {
                     b.Property<uint>("User1Id")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int unsigned");
 
                     b.Property<uint>("User2Id")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int unsigned");
 
                     b.Property<uint>("ByRelationShip")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int unsigned");
 
                     b.Property<uint>("Details")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int unsigned");
 
                     b.HasKey("User1Id", "User2Id");
 
                     b.HasIndex("User2Id");
 
                     b.ToTable("UserRelationships");
+                });
+
+            modelBuilder.Entity("Alcatraz.Context.Entities.LoginPin", b =>
+                {
+                    b.HasOne("Alcatraz.Context.Entities.SessionToken", "Token")
+                        .WithMany()
+                        .HasForeignKey("TokenId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Token");
                 });
 
             modelBuilder.Entity("Alcatraz.Context.Entities.PlayerStatisticsBoardValue", b =>
@@ -142,6 +199,17 @@ namespace Alcatraz.Context.Migrations
                         .IsRequired();
 
                     b.Navigation("PlayerBoard");
+                });
+
+            modelBuilder.Entity("Alcatraz.Context.Entities.SessionToken", b =>
+                {
+                    b.HasOne("Alcatraz.Context.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Alcatraz.Context.Entities.UserRelationship", b =>

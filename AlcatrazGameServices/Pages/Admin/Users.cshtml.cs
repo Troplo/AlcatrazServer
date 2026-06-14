@@ -59,7 +59,6 @@ namespace Alcatraz.GameServices.Pages.Admin
 			{
 				Id = x.Id,
 				PlayerNickName = x.PlayerNickName,
-				Username = x.Username,
 				CreatedTime = x.CreatedTime,
 				LastUpdateTime = x.LastUpdateTime,
 				LastPlayTime = x.LastPlayTime,

@@ -120,11 +120,23 @@ namespace Alcatraz.Context.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int unsigned");
 
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("Email")
                         .HasColumnType("longtext");
 
                     b.Property<Guid>("Guid")
                         .HasColumnType("char(36)");
+
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("LastPlayTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("LastUpdateTime")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("NotorietyPoints")
                         .HasColumnType("int");

@@ -36,8 +36,8 @@
         @foreach (var user in Model.UsersOnPage)
         {
             <tr>
-                <th scope="row">@user.Username</th>
-                <td>@user.Username</td>
+                <th scope="row">@user.PlayerNickName</th>
+                <td>@user.PlayerNickName</td>
                 <td>@user.Id</td>
                 <td>@(user.IsAdmin ? "Yes" : "No")</td>
                 <td>@(user.CreatedTime.ToShortDateString()) @(user.CreatedTime.ToShortTimeString())</td>

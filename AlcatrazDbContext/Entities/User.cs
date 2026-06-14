@@ -16,6 +16,7 @@ namespace Alcatraz.Context.Entities
 		[JsonIgnore]
 		public string Password { get; set; }
 		public int RewardFlags { get; set; }
+		public int NotorietyPoints { get; set; }
 		public DateTime CreatedTime { get; set; }
 		public DateTime LastUpdateTime { get; set; }
 		public DateTime LastPlayTime { get; set; }

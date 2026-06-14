@@ -23,8 +23,8 @@ namespace Alcatraz.GameServices.Services
 		ResultModel Register(UserRegisterModel model);
 		ResultModel Update(UserModel model);
 		ResultModel ChangePassword(Guid userId, string newPassword);
-		ResultModel ResetPassword(uint userId);
-		ResultModel Delete(uint userId);
+		ResultModel ResetPassword(Guid userId);
+		ResultModel Delete(Guid userId);
 
 		IEnumerable<UserModel> GetAll();
 		UserModel GetById(uint id);
@@ -89,7 +89,7 @@ namespace Alcatraz.GameServices.Services
 					PlayerNickName = x.PlayerNickName,
 					Email = x.Email,
 					RewardFlags = x.RewardFlags,
-					NotorietyPoints = x.NotorietyPoints
+					NotorietyPoints = x.NotorietyPoints,
 					CreatedTime = x.CreatedTime,
 					LastUpdateTime = x.LastUpdateTime,
 					LastPlayTime = x.LastPlayTime,
@@ -108,7 +108,7 @@ namespace Alcatraz.GameServices.Services
 					PlayerNickName = x.PlayerNickName,
 					Email = x.Email,
 					RewardFlags = x.RewardFlags,
-					NotorietyPoints = x.NotorietyPoints
+					NotorietyPoints = x.NotorietyPoints,
 					CreatedTime = x.CreatedTime,
 					LastUpdateTime = x.LastUpdateTime,
 					LastPlayTime = x.LastPlayTime,
@@ -243,20 +243,19 @@ namespace Alcatraz.GameServices.Services
 			return new ResultModel();
 		}
 
-		public ResultModel ChangePassword(Guid userId, string newPassword)
-		public ResultModel Delete(uint userId)
+		public ResultModel Delete(Guid userId)
 		{
 			var user = GetByIdInternal(userId);
 			if (user == null)
-				return new ResultModel("Invalid user");
+				return new ResultModel(TNTMPErrorCode.USER_UserNotFound, "Invalid user");
 			if(user.IsAdmin)
 			{
 				if(_dbContext.Users.Count(x => x.IsAdmin) <= 1)
-					return new ResultModel("Cannot delete last user with Admin rights");
+					return new ResultModel(TNTMPErrorCode.GenericValidationError, "Cannot delete last user with Admin rights");
 			}
 
 			// delete player statistics entirely
-			foreach(var board in _dbContext.PlayerStatisticBoards.Where(x => x.PlayerId == userId))
+			foreach(var board in _dbContext.PlayerStatisticBoards.Where(x => x.PlayerId == user.Id))
 			{
 				uint boardId = board.Id;
 
@@ -292,12 +291,12 @@ namespace Alcatraz.GameServices.Services
 			return new ResultModel();
 		}
 
-		public ResultModel ResetPassword(uint userId)
+		public ResultModel ResetPassword(Guid userId)
 		{
 			var user = GetByIdInternal(userId);
 
 			if (user == null)
-				return new ResultModel("User with that Id was not found");
+				return new ResultModel(TNTMPErrorCode.USER_UserNotFound, "User with that Id was not found");
 
 			try
 			{
@@ -307,7 +306,7 @@ namespace Alcatraz.GameServices.Services
 			}
 			catch
 			{
-				return new ResultModel("Unable to update user (internal error)");
+				return new ResultModel(TNTMPErrorCode.SERVER_InternalServerError, "Unable to update user (internal error)");
 			}
 
 			return new ResultModel();
@@ -338,7 +337,7 @@ namespace Alcatraz.GameServices.Services
 				new Claim("uid", user.Id.ToString()),
 				new Claim(ClaimTypes.Name, user.Email),
 				new Claim(ClaimTypes.Role, user.IsAdmin ? "admin" : "user"),
-				new Claim(ClaimTypes.Name, user.Username),
+				new Claim(ClaimTypes.Name, user.PlayerNickName),
 			};
 		}
 
