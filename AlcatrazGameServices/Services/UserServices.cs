@@ -345,17 +345,21 @@ namespace Alcatraz.GameServices.Services
 		{
 			var user = GetByIdInternal(userId);
 			int currentPoints = user.NotorietyPoints;
-			int realDelta = currentPoints - points;
+			int realDelta = Int32.Abs(points - currentPoints);
 			bool update = true;
 			if (realDelta != clientDelta)
 			{
 				update = false;
 			}
-
-			if (gamemode == 0 || gamemode == 8 || gamemode == 7 || gamemode == 6)
+			if(realDelta > 800 || realDelta < -800)
 			{
 				update = false;
 			}
+
+			// if (gamemode == 0 || gamemode == 8 || gamemode == 7 || gamemode == 6)
+			// {
+				// update = false;
+			// }
 
 			if (update)
 			{ 
