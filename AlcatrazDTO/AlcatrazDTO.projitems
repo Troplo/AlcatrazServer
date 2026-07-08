@@ -21,6 +21,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\ApiResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\AuthRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\LegalResponse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\MarketplaceTokenResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\NotorietySyncRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\NotorietySyncResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Generic\PinLoginRequest.cs" />

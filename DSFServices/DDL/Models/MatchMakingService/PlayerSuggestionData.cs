@@ -52,6 +52,7 @@ public class PlayerSuggestionData
     public UserSetting tnt_userSettings { get; set; }
     public uint tnt_modsHashStd { get; set; }
     public uint tnt_modsHashGfx { get; set; }
+    public uint tnt_modsHashStdHigh { get; set; }
 }
 
 //{"mission_id":4294967280,"nat_type":1,"roles_bitmask":3,"game_version":3053253107,"portals_mode":6017,"sp_act":2,"notoriety":0,"origin":10,"xp":26785,"hack_defense":100,"time_available":1914485040}

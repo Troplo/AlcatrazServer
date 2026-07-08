@@ -101,7 +101,13 @@ namespace DSFServices.Services
                 { "VersionOverride.sub-cg-jpn-package-125.MASTER : sub-cg-jpn-package-125", 8u },
                 { "VersionOverride.chs-6.MASTER : chs-6", 8u },
                 { "VersionOverride.dlc-cg-jpn-package-25.MASTER : dlc-cg-jpn-package-25", 10u },
-                { "PortalAvailability.PDAMapAppOpenDuration", 0u }
+                { "PortalAvailability.PDAMapAppOpenDuration", 0u },
+                // { "PlayerProgression.NotorietyRaceAheadOf", 20u },
+                // { "PlayerProgression.NotorietyRaceBehind", 10u },
+                // { "PlayerProgression.NotorietyDecryptionTeamLoss", 5u },
+                // { "PlayerProgression.NotorietyDecryptionPlayerHigherXP", 10u },
+                // { "PlayerProgression.NotorietyDecryptionPlayerLowerXP", 2u },
+                // { "PlayerProgression.NotorietyCompanionPenalty", 5u },
             };
             
             response.ServerTime = (uint)System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();

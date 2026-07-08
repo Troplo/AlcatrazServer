@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using DSFServices.DDL.Models;
 using QNetZ;
@@ -50,7 +51,13 @@ namespace DSFServices.Services
 		public static List<MatchMakingRequest> MatchmakingQueue = new List<MatchMakingRequest>();
 		public static List<PendingMatch> PendingMatches = new List<PendingMatch>();
 		private static object _matchmakingLock = new object();
-
+		
+		private static ulong CombineHighLow(uint high, uint low)
+		{
+			ulong merged = ((ulong)high << 32) | low;
+			return merged;
+		}
+		
 		public static void CheckMatches()
 		{
 			lock (_matchmakingLock)
@@ -89,6 +96,15 @@ namespace DSFServices.Services
 							return session.Attributes.TryGetValue((uint)key, out var value) && value == expected;
 						}
 
+						bool TryMatchModsHashV2(ulong expected)
+						{
+							uint high;
+							session.Attributes.TryGetValue((uint)GameSessionAttributeType.TNT_ModsHashStdHigh, out high);
+							uint low;
+							session.Attributes.TryGetValue((uint)GameSessionAttributeType.TNT_ModsHashStdLow, out low);
+							return expected == CombineHighLow(high, low);
+						}
+
 						
 						bool hasIgnoreSessionSettings =
 							(p1.Data.tnt_userSettings & UserSetting.AllowMatchingDifferentSessionSettings)
@@ -100,7 +116,8 @@ namespace DSFServices.Services
 
 						bool tntPrecheck =
 							TryMatch(GameSessionAttributeType.TNT_Version, p1.Data.tnt_version) &&
-							TryMatch(GameSessionAttributeType.TNT_ModsHashStd, p1.Data.tnt_modsHashStd) &&
+							// TryMatch(GameSessionAttributeType.TNT_ModsHashStd, p1.Data.tnt_modsHashStd) &&
+							TryMatchModsHashV2(CombineHighLow(p1.Data.tnt_modsHashStd, p1.Data.tnt_modsHashStdHigh)) &&
 							(hasIgnoreGraphicsMods || TryMatch(GameSessionAttributeType.TNT_ModsHashGfx, p1.Data.tnt_modsHashGfx)) &&
 							 (TryMatch(GameSessionAttributeType.TNT_SessionSettings, (uint)p1.Data.tnt_sessionSettings) || hasIgnoreSessionSettings);
 // #endif

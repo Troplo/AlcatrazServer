@@ -33,6 +33,7 @@ namespace Alcatraz.GameServices.Services
 		public IEnumerable<Claim> GetUserClaims(UserModel user);
 		string GenerateJwtToken(UserModel userModel);
 		public int UpdateNotoriety(Guid userId, int points, int clientDelta, uint gameSessionId, int gamemode);
+		public MarketplaceTokenResponse CreateMarketplaceJwt(Guid userId);
 	}
 
 	public class UserService : IUserService
@@ -368,6 +369,42 @@ namespace Alcatraz.GameServices.Services
 			}
 
 			return user.NotorietyPoints;
+		}
+
+		public MarketplaceTokenResponse CreateMarketplaceJwt(Guid userId)
+		{
+			QLog.WriteLine(1, $"Marketplace enabled {QConfiguration.Instance.MarketplaceConfig.Enabled}");
+			if (!QConfiguration.Instance.MarketplaceConfig.Enabled)
+			{
+				return new MarketplaceTokenResponse
+				{
+					enabled = false
+				};
+			}
+			var user = GetByIdInternal(userId);
+			var tokenHandler = new JwtSecurityTokenHandler();
+			var key = Encoding.ASCII.GetBytes(QConfiguration.Instance.MarketplaceConfig.Secret);
+			var tokenDescriptor = new SecurityTokenDescriptor
+			{
+				Subject = new ClaimsIdentity(new[] {
+					new Claim("tntmpUserGuid", userId.ToString()),
+					new Claim("tntmpUserId", user.Id.ToString()),
+					new Claim("tntmpUserEmail", user.Email),
+					new Claim("tntmpUsername", user.PlayerNickName),
+					new Claim("tntmpServer", QConfiguration.Instance.ServerBaseUrl),
+				}),
+				Expires = DateTime.UtcNow.AddDays(1),
+				SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+			};
+			var token = tokenHandler.CreateToken(tokenDescriptor);
+			string jwtString = tokenHandler.WriteToken(token);
+			return new MarketplaceTokenResponse
+			{
+				token = jwtString,
+				enabled = true,
+				baseUrl = QConfiguration.Instance.MarketplaceConfig.BaseUrl,
+				expiresIn = (int)(tokenDescriptor.Expires.Value - DateTime.UtcNow).TotalSeconds
+			};
 		}
 	}
 }

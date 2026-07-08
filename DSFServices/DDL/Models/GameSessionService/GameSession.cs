@@ -51,8 +51,9 @@ namespace DSFServices.DDL.Models
 		TNT_Version = 204,
 		TNT_VersionDebug = 205,
 		TNT_DirectJoinCode = 206,
-		TNT_ModsHashStd = 207,
+		TNT_ModsHashStdLow = 207,
 		TNT_ModsHashGfx = 208,
+		TNT_ModsHashStdHigh = 209
 
 		// TODO: other parameters
 

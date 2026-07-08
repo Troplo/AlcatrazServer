@@ -28,6 +28,13 @@ namespace QNetZ
 		public string Terms { get; set; }
 		public string Privacy { get; set; }
 	}
+
+	public class MarketplaceConfig
+	{
+		public bool Enabled { get; set; } = false;
+		public string BaseUrl { get; set; }
+		public string Secret { get; set; }
+	}
 	
 	public class QConfiguration
 	{
@@ -48,6 +55,27 @@ namespace QNetZ
 		public string ServerBaseUrl { get; set; }
 		public string RdvConnectionUrl { get; set; }
 		public bool AllowRegistrations { get; set; }
+		private MarketplaceConfig? _marketplaceConfig;
+		public MarketplaceConfig MarketplaceConfig
+		{
+			get
+			{
+				if (_marketplaceConfig == null)
+				{
+					_marketplaceConfig = new MarketplaceConfig
+					{
+						Enabled = false
+					};
+				}
+
+				return _marketplaceConfig;
+			}
+			set
+			{
+				_marketplaceConfig = value;
+			}
+		}
+
 		public byte SandboxAccessKeyCheckSum
 		{
 			get
