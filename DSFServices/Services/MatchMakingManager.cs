@@ -117,7 +117,7 @@ namespace DSFServices.Services
 						bool tntPrecheck =
 							TryMatch(GameSessionAttributeType.TNT_Version, p1.Data.tnt_version) &&
 							// TryMatch(GameSessionAttributeType.TNT_ModsHashStd, p1.Data.tnt_modsHashStd) &&
-							TryMatchModsHashV2(CombineHighLow(p1.Data.tnt_modsHashStd, p1.Data.tnt_modsHashStdHigh)) &&
+							TryMatchModsHashV2(CombineHighLow(p1.Data.tnt_modsHashStdHigh, p1.Data.tnt_modsHashStd)) &&
 							(hasIgnoreGraphicsMods || TryMatch(GameSessionAttributeType.TNT_ModsHashGfx, p1.Data.tnt_modsHashGfx)) &&
 							 (TryMatch(GameSessionAttributeType.TNT_SessionSettings, (uint)p1.Data.tnt_sessionSettings) || hasIgnoreSessionSettings);
 // #endif
@@ -176,10 +176,12 @@ namespace DSFServices.Services
 						bool hasIgnoreSessionSettings = hasIgnoreSessionSettingsP1 && hasIgnoreSessionSettingsP2;
 						bool hasIgnoreGraphicsMods = hasIgnoreGraphicsModsP1 && hasIgnoreGraphicsModsP2;
 						
-						bool tntPrecheck = p1.Data.tnt_modsHashStd == p2.Data.tnt_modsHashStd
-						                   && p1.Data.tnt_version == p2.Data.tnt_version 
-						                   && (hasIgnoreGraphicsMods || p1.Data.tnt_modsHashGfx == p2.Data.tnt_modsHashGfx)
-						                   && (hasIgnoreSessionSettings || p1.Data.tnt_sessionSettings == p2.Data.tnt_sessionSettings);
+						bool tntPrecheck =
+							p1.Data.tnt_modsHashStd == p2.Data.tnt_modsHashStd &&
+							p1.Data.tnt_modsHashStdHigh == p2.Data.tnt_modsHashStdHigh &&
+							p1.Data.tnt_version == p2.Data.tnt_version &&
+							(hasIgnoreGraphicsMods || p1.Data.tnt_modsHashGfx == p2.Data.tnt_modsHashGfx) &&
+							(hasIgnoreSessionSettings || p1.Data.tnt_sessionSettings == p2.Data.tnt_sessionSettings);
 						
 						bool isExactMatch = p1.Data.game_mode != (int)GameMode.SinglePlayer && p1.Data.game_mode == p2.Data.game_mode;
 						bool isInvasionMatch = ((p1.Data.game_mode == (int)GameMode.MPHacking || p1.Data.game_mode == (int)GameMode.MPTailing) && p2.Data.game_mode == (int)GameMode.SinglePlayer && p2.Data.allow_direct_invasion) ||
